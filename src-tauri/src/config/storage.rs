@@ -95,8 +95,8 @@ impl Default for AppConfig {
             installation_timestamp: Utc::now().timestamp() as u64,
             installation_id: Uuid::new_v4().to_string(),
             password_hash: String::new(),
-            // Enable game blocking by default for effective parental control
-            game_blocking_enabled: true,
+            // Game blocking disabled by default - user must enable it
+            game_blocking_enabled: false,
             ai_blocking_enabled: false,
             dns_blocking_enabled: false,
             browser_blocking_enabled: false,
@@ -216,11 +216,9 @@ impl ConfigManager {
         let decrypted_data = crypto::decrypt(&encrypted_data, &key)?;
         let mut config: AppConfig = serde_json::from_slice(&decrypted_data)?;
 
-        // Migrate old configs: version 1 had game_blocking disabled by default
-        // Version 2+ has it enabled by default for effective parental control
+        // Migrate old configs to version 2
         if config.version < 2 {
             config.version = 2;
-            config.game_blocking_enabled = true;
             // Save the migrated config
             let _ = self.save(&config);
         }
@@ -322,8 +320,8 @@ mod tests {
         let (manager, _temp) = create_test_manager();
 
         let config = manager.initialize("test_password").unwrap();
-        // Game blocking is enabled by default for effective parental control
-        assert!(config.game_blocking_enabled);
+        // Game blocking is disabled by default
+        assert!(!config.game_blocking_enabled);
         assert!(!config.password_hash.is_empty());
 
         let loaded = manager.load().unwrap();
