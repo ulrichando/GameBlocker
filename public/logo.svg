@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#3B82F6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1D4ED8;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="innerGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#1E3A8A;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1E40AF;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Shield shape -->
+  <path d="M256 16 L480 96 L480 240 C480 368 384 464 256 496 C128 464 32 368 32 240 L32 96 Z"
+        fill="url(#shieldGrad)"
+        stroke="#1E40AF"
+        stroke-width="8"/>
+
+  <!-- Inner shield -->
+  <path d="M256 48 L448 116 L448 240 C448 352 364 432 256 460 C148 432 64 352 64 240 L64 116 Z"
+        fill="url(#innerGrad)"/>
+
+  <!-- Gamepad body -->
+  <rect x="156" y="200" width="200" height="112" rx="32" ry="32" fill="#E5E7EB"/>
+
+  <!-- D-pad -->
+  <rect x="184" y="236" width="16" height="40" rx="3" fill="#6B7280"/>
+  <rect x="172" y="248" width="40" height="16" rx="3" fill="#6B7280"/>
+
+  <!-- Action buttons -->
+  <circle cx="320" cy="240" r="12" fill="#EF4444"/>
+  <circle cx="344" cy="264" r="12" fill="#22C55E"/>
+  <circle cx="296" cy="264" r="12" fill="#3B82F6"/>
+  <circle cx="320" cy="288" r="12" fill="#EAB308"/>
+
+  <!-- Analog sticks -->
+  <circle cx="220" cy="288" r="16" fill="#9CA3AF"/>
+  <circle cx="292" cy="288" r="16" fill="#9CA3AF" opacity="0"/>
+
+  <!-- Block/prohibition circle -->
+  <circle cx="256" cy="256" r="120" fill="none" stroke="#DC2626" stroke-width="24" opacity="0.9"/>
+
+  <!-- Block diagonal line -->
+  <line x1="171" y1="171" x2="341" y2="341" stroke="#DC2626" stroke-width="24" stroke-linecap="round" opacity="0.9"/>
+</svg>

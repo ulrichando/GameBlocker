@@ -1,0 +1,84 @@
+[package]
+name = "gameblocker"
+version = "0.1.0"
+description = "Cross-platform parental control software for blocking games and AI services"
+authors = ["GameBlocker"]
+edition = "2021"
+default-run = "gameblocker"
+
+[lib]
+name = "gameblocker_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[[bin]]
+name = "gameblocker-daemon"
+path = "src/bin/daemon.rs"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+# Tauri
+tauri = { version = "2", features = ["tray-icon"] }
+tauri-plugin-opener = "2"
+
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.8"
+
+# Security
+argon2 = "0.5"
+aes-gcm = "0.10"
+rand = "0.8"
+sha2 = "0.10"
+zeroize = { version = "1", features = ["derive"] }
+
+# DNS
+hickory-resolver = "0.24"
+hickory-server = "0.24"
+
+# Cross-platform
+directories = "5"
+
+# Date/time
+chrono = { version = "0.4", features = ["serde"] }
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Error handling
+thiserror = "1"
+anyhow = "1"
+
+# UUID
+uuid = { version = "1", features = ["v4", "serde"] }
+
+# Regex for pattern matching
+regex = "1"
+
+[target.'cfg(target_os = "linux")'.dependencies]
+procfs = "0.17"
+nix = { version = "0.29", features = ["process", "signal", "net", "fs", "user"] }
+
+[target.'cfg(target_os = "windows")'.dependencies]
+windows = { version = "0.58", features = [
+    "Win32_System_Services",
+    "Win32_NetworkManagement_WindowsFirewall",
+    "Win32_System_Threading",
+    "Win32_System_ProcessStatus",
+    "Win32_Foundation",
+    "Win32_Security",
+    "Win32_System_Diagnostics_ToolHelp",
+] }
+winreg = "0.52"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+core-foundation = "0.10"
+
+[dev-dependencies]
+tempfile = "3"

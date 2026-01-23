@@ -1,0 +1,59 @@
+# Gaming Websites Blocklist
+# GameBlocker - Default blocked domains
+
+# Major Platforms
+store.steampowered.com
+steampowered.com
+steamcommunity.com
+epicgames.com
+store.epicgames.com
+gog.com
+battle.net
+origin.com
+ea.com
+ubisoft.com
+uplay.com
+
+# Browser Games
+poki.com
+poki.nl
+miniclip.com
+kongregate.com
+crazygames.com
+armorgames.com
+newgrounds.com
+itch.io
+coolmathgames.com
+coolmath-games.com
+addictinggames.com
+y8.com
+friv.com
+kizi.com
+agame.com
+silvergames.com
+games.co.uk
+gameforge.com
+iogames.space
+io-games.io
+
+# Game-specific
+roblox.com
+minecraft.net
+leagueoflegends.com
+fortnite.com
+valorant.com
+playoverwatch.com
+playvalorant.com
+
+# Gaming Communities
+twitch.tv
+kick.com
+
+# Emulators
+retroarch.com
+emulator-zone.com
+
+# Game Mods
+nexusmods.com
+moddb.com
+curseforge.com

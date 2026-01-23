@@ -1,0 +1,81 @@
+# Gaming Processes Blocklist
+# GameBlocker - Default blocked processes
+
+# Steam
+steam
+steam.exe
+steamwebhelper
+steamwebhelper.exe
+steamservice.exe
+
+# Epic Games
+epicgameslauncher
+epicgameslauncher.exe
+EpicWebHelper.exe
+
+# EA/Origin
+origin
+origin.exe
+OriginWebHelperService.exe
+EADesktop.exe
+EABackgroundService.exe
+
+# Battle.net
+battle.net
+battle.net.exe
+agent.exe
+
+# Ubisoft
+ubisoftconnect
+ubisoftconnect.exe
+upc.exe
+UplayWebCore.exe
+
+# GOG Galaxy
+galaxyclient
+galaxyclient.exe
+
+# Discord
+discord
+discord.exe
+
+# Roblox
+robloxplayerbeta
+robloxplayerbeta.exe
+robloxstudiobeta.exe
+
+# Minecraft
+minecraft
+javaw.exe
+minecraft-launcher
+
+# Popular Games
+leagueclient
+leagueclient.exe
+league of legends.exe
+fortniteclient-win64-shipping.exe
+fortnitelauncher.exe
+valorant.exe
+valorant-win64-shipping.exe
+vanguard.exe
+cs2.exe
+csgo.exe
+overwatch.exe
+genshinimpact.exe
+yuanshen.exe
+
+# Other Launchers
+playnite.exe
+playnite.desktopapp.exe
+
+# Linux Gaming
+lutris
+gamescope
+wine
+wine64
+proton
+
+# Cloud Gaming
+geforcenow.exe
+xboxapp.exe
+gamingservices.exe

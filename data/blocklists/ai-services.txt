@@ -1,0 +1,65 @@
+# AI Services Blocklist
+# GameBlocker - Default blocked AI domains
+
+# OpenAI / ChatGPT
+chat.openai.com
+chatgpt.com
+openai.com
+api.openai.com
+
+# Anthropic / Claude
+claude.ai
+anthropic.com
+api.anthropic.com
+
+# Google AI
+gemini.google.com
+bard.google.com
+ai.google
+aistudio.google.com
+
+# Microsoft Copilot
+copilot.microsoft.com
+bing.com/chat
+copilot.github.com
+
+# Other Chatbots
+perplexity.ai
+poe.com
+character.ai
+beta.character.ai
+you.com
+
+# Image Generators
+midjourney.com
+leonardo.ai
+ideogram.ai
+playground.ai
+dreamstudio.ai
+stability.ai
+dall-e.com
+craiyon.com
+
+# Writing Assistants
+jasper.ai
+rytr.me
+copy.ai
+writesonic.com
+quillbot.com
+
+# Code Assistants
+replit.com
+cursor.com
+codeium.com
+tabnine.com
+sourcegraph.com
+
+# Other AI Services
+huggingface.co
+replicate.com
+runpod.io
+together.ai
+groq.com
+fireworks.ai
+cohere.com
+ai21.com
