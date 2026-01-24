@@ -12,6 +12,10 @@ from app.core.dependencies import AdminUser, DbSession
 from app.models import User, UserRole, Subscription, Transaction
 from app.schemas.admin import DashboardStats, CustomerListResponse, CustomerWithSubscription
 from app.schemas.user import UserResponse
+from app.schemas.subscription import SubscriptionResponse
+from app.schemas.transaction import TransactionResponse
+from app.models.subscription import SubscriptionStatus
+from app.models.transaction import TransactionStatus
 from app.services.analytics_service import AnalyticsService
 from app.services.user_service import UserService
 
@@ -207,6 +211,53 @@ async def get_customer_chart(
     return await AnalyticsService.get_customer_growth(db, days)
 
 
+@router.get("/api/customers", response_model=CustomerListResponse)
+async def list_customers(
+    current_user: AdminUser,
+    db: DbSession,
+    page: int = Query(1, ge=1),
+    per_page: int = Query(20, ge=1, le=100),
+    search: str = Query("", description="Search by email or name"),
+):
+    """List all customers (JSON API)."""
+    query = select(User).where(User.role == UserRole.CUSTOMER)
+
+    if search:
+        query = query.where(
+            User.email.ilike(f"%{search}%") |
+            User.first_name.ilike(f"%{search}%") |
+            User.last_name.ilike(f"%{search}%")
+        )
+
+    count_query = select(func.count()).select_from(query.subquery())
+    total_result = await db.execute(count_query)
+    total = total_result.scalar() or 0
+
+    query = query.order_by(User.created_at.desc()).offset((page - 1) * per_page).limit(per_page)
+    result = await db.execute(query)
+    users = result.scalars().all()
+
+    customers = []
+    for user in users:
+        subscription = await UserService.get_user_subscription(db, user.id)
+        total_spent = await UserService.get_user_total_spent(db, user.id)
+        customers.append(CustomerWithSubscription(
+            user=UserResponse.model_validate(user),
+            subscription=subscription,
+            total_spent=total_spent,
+        ))
+
+    total_pages = (total + per_page - 1) // per_page
+
+    return CustomerListResponse(
+        customers=customers,
+        total=total,
+        page=page,
+        per_page=per_page,
+        total_pages=total_pages,
+    )
+
+
 @router.put("/customers/{customer_id}/suspend")
 async def suspend_customer(
     customer_id: UUID,
@@ -271,3 +322,121 @@ async def export_transactions(
         media_type="text/csv",
         headers={"Content-Disposition": "attachment; filename=transactions.csv"},
     )
+
+
+@router.get("/api/subscriptions")
+async def list_subscriptions(
+    current_user: AdminUser,
+    db: DbSession,
+    page: int = Query(1, ge=1),
+    per_page: int = Query(20, ge=1, le=100),
+    status: str | None = Query(None, description="Filter by status"),
+):
+    """List all subscriptions (JSON API)."""
+    query = select(Subscription, User).join(User, Subscription.user_id == User.id)
+
+    if status:
+        try:
+            status_enum = SubscriptionStatus(status)
+            query = query.where(Subscription.status == status_enum)
+        except ValueError:
+            pass
+
+    count_query = select(func.count(Subscription.id))
+    if status:
+        try:
+            status_enum = SubscriptionStatus(status)
+            count_query = count_query.where(Subscription.status == status_enum)
+        except ValueError:
+            pass
+    total_result = await db.execute(count_query)
+    total = total_result.scalar() or 0
+
+    query = query.order_by(Subscription.created_at.desc()).offset((page - 1) * per_page).limit(per_page)
+    result = await db.execute(query)
+    rows = result.all()
+
+    subscriptions = []
+    for subscription, user in rows:
+        subscriptions.append({
+            "id": str(subscription.id),
+            "user_id": str(subscription.user_id),
+            "user_email": user.email,
+            "user_name": f"{user.first_name or ''} {user.last_name or ''}".strip() or None,
+            "status": subscription.status.value,
+            "plan_name": subscription.plan_name,
+            "amount": float(subscription.amount),
+            "currency": subscription.currency,
+            "current_period_start": subscription.current_period_start.isoformat() if subscription.current_period_start else None,
+            "current_period_end": subscription.current_period_end.isoformat() if subscription.current_period_end else None,
+            "canceled_at": subscription.canceled_at.isoformat() if subscription.canceled_at else None,
+            "created_at": subscription.created_at.isoformat(),
+        })
+
+    total_pages = (total + per_page - 1) // per_page
+
+    return {
+        "subscriptions": subscriptions,
+        "total": total,
+        "page": page,
+        "per_page": per_page,
+        "total_pages": total_pages,
+    }
+
+
+@router.get("/api/transactions")
+async def list_transactions(
+    current_user: AdminUser,
+    db: DbSession,
+    page: int = Query(1, ge=1),
+    per_page: int = Query(20, ge=1, le=100),
+    status: str | None = Query(None, description="Filter by status"),
+):
+    """List all transactions (JSON API)."""
+    query = select(Transaction, User).join(User, Transaction.user_id == User.id)
+
+    if status:
+        try:
+            status_enum = TransactionStatus(status)
+            query = query.where(Transaction.status == status_enum)
+        except ValueError:
+            pass
+
+    count_query = select(func.count(Transaction.id))
+    if status:
+        try:
+            status_enum = TransactionStatus(status)
+            count_query = count_query.where(Transaction.status == status_enum)
+        except ValueError:
+            pass
+    total_result = await db.execute(count_query)
+    total = total_result.scalar() or 0
+
+    query = query.order_by(Transaction.created_at.desc()).offset((page - 1) * per_page).limit(per_page)
+    result = await db.execute(query)
+    rows = result.all()
+
+    transactions = []
+    for transaction, user in rows:
+        transactions.append({
+            "id": str(transaction.id),
+            "user_id": str(transaction.user_id),
+            "user_email": user.email,
+            "user_name": f"{user.first_name or ''} {user.last_name or ''}".strip() or None,
+            "amount": float(transaction.amount),
+            "currency": transaction.currency,
+            "status": transaction.status.value,
+            "description": transaction.description,
+            "invoice_url": transaction.invoice_url,
+            "created_at": transaction.created_at.isoformat(),
+        })
+
+    total_pages = (total + per_page - 1) // per_page
+
+    return {
+        "transactions": transactions,
+        "total": total,
+        "page": page,
+        "per_page": per_page,
+        "total_pages": total_pages,
+    }

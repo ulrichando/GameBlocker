@@ -31,6 +31,8 @@ class User(Base):
     subscriptions: Mapped[list["Subscription"]] = relationship("Subscription", back_populates="user")
     transactions: Mapped[list["Transaction"]] = relationship("Transaction", back_populates="user")
     refresh_tokens: Mapped[list["RefreshToken"]] = relationship("RefreshToken", back_populates="user")
+    downloads: Mapped[list["Download"]] = relationship("Download", back_populates="user")
+    installations: Mapped[list["Installation"]] = relationship("Installation", back_populates="user")
 
     @property
     def full_name(self) -> str:
@@ -76,3 +78,4 @@ class RefreshToken(Base):
 # Import for type hints
 from app.models.subscription import Subscription
 from app.models.transaction import Transaction
+from app.models.device import Download, Installation

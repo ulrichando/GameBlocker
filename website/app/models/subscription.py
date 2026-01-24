@@ -77,7 +77,6 @@ class Subscription(Base):
     stripe_subscription_id: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True, index=True)
     stripe_customer_id: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
     status: Mapped[SubscriptionStatus] = mapped_column(Enum(SubscriptionStatus), default=SubscriptionStatus.INCOMPLETE, nullable=False)
-    plan_type: Mapped[PlanType] = mapped_column(Enum(PlanType), default=PlanType.TRIAL, nullable=False)
     plan_name: Mapped[str] = mapped_column(String(100), default="Free Trial", nullable=False)
     amount: Mapped[float] = mapped_column(Numeric(10, 2), default=0.00, nullable=False)
     currency: Mapped[str] = mapped_column(String(3), default="USD", nullable=False)
@@ -90,7 +89,14 @@ class Subscription(Base):
     @property
     def features(self) -> dict:
         """Get the features for this subscription's plan."""
-        return PLAN_CONFIG.get(self.plan_type, {}).get("features", {})
+        # Match plan_name to PlanType
+        plan_map = {
+            "Free Trial": PlanType.TRIAL,
+            "Basic": PlanType.BASIC,
+            "Pro": PlanType.PRO,
+        }
+        plan_type = plan_map.get(self.plan_name, PlanType.TRIAL)
+        return PLAN_CONFIG.get(plan_type, {}).get("features", {})
 
     # Relationships
     user: Mapped["User"] = relationship("User", back_populates="subscriptions")

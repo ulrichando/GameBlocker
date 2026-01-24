@@ -9,6 +9,30 @@ from app.models import User, UserRole, Subscription, SubscriptionStatus
 from app.core.security import decode_token
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+oauth2_scheme_optional = OAuth2PasswordBearer(tokenUrl="/auth/login", auto_error=False)
+
+
+async def get_optional_user(
+    token: Annotated[str | None, Depends(oauth2_scheme_optional)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> User | None:
+    """Get the current user if authenticated, otherwise return None."""
+    if not token:
+        return None
+
+    payload = decode_token(token)
+    if payload is None:
+        return None
+
+    if payload.get("type") != "access":
+        return None
+
+    user_id: str = payload.get("sub")
+    if user_id is None:
+        return None
+
+    result = await db.execute(select(User).where(User.id == user_id))
+    return result.scalar_one_or_none()
 
 
 async def get_current_user(
@@ -97,4 +121,5 @@ CurrentUser = Annotated[User, Depends(get_current_user)]
 ActiveUser = Annotated[User, Depends(get_current_active_user)]
 AdminUser = Annotated[User, Depends(get_admin_user)]
 Subscriber = Annotated[User, Depends(get_active_subscriber)]
+OptionalUser = Annotated[User | None, Depends(get_optional_user)]
 DbSession = Annotated[AsyncSession, Depends(get_db)]
