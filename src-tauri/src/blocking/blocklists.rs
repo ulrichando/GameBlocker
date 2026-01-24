@@ -788,10 +788,11 @@ mod tests {
     fn test_is_process_blocked() {
         let blocked = get_default_gaming_processes();
         let allowed = HashSet::new();
+        let allowed_domains = HashSet::new();
 
-        assert!(is_process_blocked("steam.exe", &blocked, &allowed));
-        assert!(is_process_blocked("Steam.exe", &blocked, &allowed));
-        assert!(!is_process_blocked("notepad.exe", &blocked, &allowed));
+        assert!(is_process_blocked("steam.exe", &blocked, &allowed, &allowed_domains));
+        assert!(is_process_blocked("Steam.exe", &blocked, &allowed, &allowed_domains));
+        assert!(!is_process_blocked("notepad.exe", &blocked, &allowed, &allowed_domains));
     }
 
     #[test]
@@ -809,7 +810,8 @@ mod tests {
         let blocked = get_default_gaming_processes();
         let mut allowed = HashSet::new();
         allowed.insert("steam.exe".to_string());
+        let allowed_domains = HashSet::new();
 
-        assert!(!is_process_blocked("steam.exe", &blocked, &allowed));
+        assert!(!is_process_blocked("steam.exe", &blocked, &allowed, &allowed_domains));
     }
 }

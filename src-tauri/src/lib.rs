@@ -10,6 +10,7 @@ pub mod security;
 use commands::{
     auth::*, blocking::*, blocklist::*, daemon::*, schedule::*,
 };
+use daemon::service::{get_service_manager, ServiceStatus};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -25,6 +26,13 @@ pub fn run() {
 
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .setup(|_app| {
+            // Ensure daemon is running on app startup
+            std::thread::spawn(|| {
+                ensure_daemon_running();
+            });
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             // Auth commands
             get_auth_status,
@@ -79,4 +87,42 @@ pub fn run() {
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+/// Ensure the daemon is running on app startup.
+/// This checks if the daemon is installed and running, and attempts to start it if not.
+fn ensure_daemon_running() {
+    let manager = get_service_manager();
+
+    if !manager.is_installed() {
+        tracing::info!("Daemon not installed, skipping auto-start");
+        return;
+    }
+
+    let status = manager.status();
+    match status {
+        ServiceStatus::Running => {
+            tracing::info!("Daemon is already running");
+        }
+        ServiceStatus::Stopped => {
+            tracing::info!("Daemon is stopped, attempting to start...");
+            match manager.start() {
+                Ok(()) => {
+                    tracing::info!("Daemon started successfully");
+                }
+                Err(e) => {
+                    tracing::warn!("Failed to start daemon: {}", e);
+                }
+            }
+        }
+        ServiceStatus::NotInstalled => {
+            tracing::info!("Daemon service file exists but systemd reports not installed");
+        }
+        ServiceStatus::Unknown => {
+            tracing::warn!("Daemon status unknown, attempting to start...");
+            if let Err(e) = manager.start() {
+                tracing::warn!("Failed to start daemon: {}", e);
+            }
+        }
+    }
 }
