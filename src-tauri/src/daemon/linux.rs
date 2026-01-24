@@ -4,8 +4,8 @@ use super::{ServiceError, ServiceManager, ServiceStatus};
 use std::fs;
 use std::process::Command;
 
-const SERVICE_NAME: &str = "gameblocker";
-const SERVICE_FILE: &str = "/etc/systemd/system/gameblocker.service";
+const SERVICE_NAME: &str = "parentshield";
+const SERVICE_FILE: &str = "/etc/systemd/system/parentshield.service";
 
 pub struct LinuxServiceManager {
     daemon_path: String,
@@ -17,8 +17,8 @@ impl LinuxServiceManager {
         let daemon_path = std::env::current_exe()
             .ok()
             .and_then(|exe| exe.parent().map(|p| p.to_path_buf()))
-            .map(|dir| dir.join("gameblocker-daemon").display().to_string())
-            .unwrap_or_else(|| "/opt/gameblocker/gameblocker-daemon".to_string());
+            .map(|dir| dir.join("parentshield-daemon").display().to_string())
+            .unwrap_or_else(|| "/opt/parentshield/parentshield-daemon".to_string());
 
         Self { daemon_path }
     }
@@ -28,7 +28,7 @@ impl ServiceManager for LinuxServiceManager {
     fn install(&self) -> Result<(), ServiceError> {
         let service_content = format!(
             r#"[Unit]
-Description=GameBlocker Parental Control Daemon
+Description=ParentShield Parental Control Daemon
 After=network.target
 
 [Service]
@@ -39,7 +39,7 @@ RestartSec=5
 User=root
 
 # Create runtime directory for socket
-RuntimeDirectory=gameblocker
+RuntimeDirectory=parentshield
 RuntimeDirectoryMode=0755
 
 # Prevent manual stop (parental control)
@@ -72,7 +72,7 @@ WantedBy=multi-user.target
             ));
         }
 
-        tracing::info!("GameBlocker service installed");
+        tracing::info!("ParentShield service installed");
         Ok(())
     }
 
@@ -92,7 +92,7 @@ WantedBy=multi-user.target
         // Reload systemd
         let _ = Command::new("systemctl").args(["daemon-reload"]).output();
 
-        tracing::info!("GameBlocker service uninstalled");
+        tracing::info!("ParentShield service uninstalled");
         Ok(())
     }
 

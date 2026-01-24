@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - ParentShield{% endblock %}
+
+{% block extra_css %}
+<style>
+    .settings-page {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    .card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: var(--shadow-md);
+        margin-bottom: 1.5rem;
+    }
+    .card-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: var(--slate-900);
+        margin-bottom: 1.5rem;
+    }
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: var(--slate-700);
+        font-weight: 500;
+    }
+    .form-group input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--slate-300);
+        border-radius: 8px;
+        font-size: 1rem;
+    }
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+    .btn {
+        display: inline-block;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 500;
+        text-decoration: none;
+        cursor: pointer;
+        border: none;
+    }
+    .btn-primary {
+        background: var(--primary-500);
+        color: white;
+    }
+    .success-message {
+        background: #f0fdf4;
+        color: #16a34a;
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        display: none;
+    }
+    .error-message {
+        background: #fef2f2;
+        color: #dc2626;
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        display: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="settings-page">
+    <h1 style="margin-bottom: 1.5rem; color: var(--slate-900);">Account Settings</h1>
+
+    <div class="card">
+        <h2 class="card-title">Profile Information</h2>
+        <div id="profile-success" class="success-message"></div>
+        <div id="profile-error" class="error-message"></div>
+        <form id="profile-form">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="first_name">First Name</label>
+                    <input type="text" id="first_name" value="{{ user.first_name or '' }}">
+                </div>
+                <div class="form-group">
+                    <label for="last_name">Last Name</label>
+                    <input type="text" id="last_name" value="{{ user.last_name or '' }}">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" value="{{ user.email }}" disabled style="background: var(--slate-100);">
+            </div>
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <h2 class="card-title">Change Password</h2>
+        <div id="password-success" class="success-message"></div>
+        <div id="password-error" class="error-message"></div>
+        <form id="password-form">
+            <div class="form-group">
+                <label for="current_password">Current Password</label>
+                <input type="password" id="current_password" required>
+            </div>
+            <div class="form-group">
+                <label for="new_password">New Password</label>
+                <input type="password" id="new_password" required>
+            </div>
+            <div class="form-group">
+                <label for="confirm_password">Confirm New Password</label>
+                <input type="password" id="confirm_password" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Change Password</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const token = localStorage.getItem('access_token');
+
+    document.getElementById('profile-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const successDiv = document.getElementById('profile-success');
+        const errorDiv = document.getElementById('profile-error');
+        successDiv.style.display = 'none';
+        errorDiv.style.display = 'none';
+
+        try {
+            const response = await fetch('/account/profile', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    first_name: document.getElementById('first_name').value || null,
+                    last_name: document.getElementById('last_name').value || null
+                })
+            });
+
+            if (response.ok) {
+                successDiv.textContent = 'Profile updated successfully';
+                successDiv.style.display = 'block';
+            } else {
+                const data = await response.json();
+                errorDiv.textContent = data.detail || 'Failed to update profile';
+                errorDiv.style.display = 'block';
+            }
+        } catch (error) {
+            errorDiv.textContent = 'An error occurred';
+            errorDiv.style.display = 'block';
+        }
+    });
+
+    document.getElementById('password-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const successDiv = document.getElementById('password-success');
+        const errorDiv = document.getElementById('password-error');
+        successDiv.style.display = 'none';
+        errorDiv.style.display = 'none';
+
+        const newPassword = document.getElementById('new_password').value;
+        const confirmPassword = document.getElementById('confirm_password').value;
+
+        if (newPassword !== confirmPassword) {
+            errorDiv.textContent = 'Passwords do not match';
+            errorDiv.style.display = 'block';
+            return;
+        }
+
+        try {
+            const response = await fetch('/account/password', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    current_password: document.getElementById('current_password').value,
+                    new_password: newPassword,
+                    confirm_password: confirmPassword
+                })
+            });
+
+            if (response.ok) {
+                successDiv.textContent = 'Password changed successfully';
+                successDiv.style.display = 'block';
+                document.getElementById('password-form').reset();
+            } else {
+                const data = await response.json();
+                errorDiv.textContent = data.detail || 'Failed to change password';
+                errorDiv.style.display = 'block';
+            }
+        } catch (error) {
+            errorDiv.textContent = 'An error occurred';
+            errorDiv.style.display = 'block';
+        }
+    });
+</script>
+{% endblock %}

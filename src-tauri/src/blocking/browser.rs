@@ -102,7 +102,7 @@ fn disable_firefox_doh() -> io::Result<Vec<String>> {
                 }
 
                 // Add DoH disable setting (mode 5 = DoH disabled)
-                content.push_str("\n// GameBlocker: Disable DNS-over-HTTPS for website blocking\n");
+                content.push_str("\n// ParentShield: Disable DNS-over-HTTPS for website blocking\n");
                 content.push_str("user_pref(\"network.trr.mode\", 5);\n");
 
                 fs::write(&user_js, content)?;
@@ -145,9 +145,9 @@ fn enable_firefox_doh() -> io::Result<Vec<String>> {
             if user_js.exists() {
                 let content = fs::read_to_string(&user_js)?;
 
-                // Remove GameBlocker DoH settings
+                // Remove ParentShield DoH settings
                 let lines: Vec<&str> = content.lines()
-                    .filter(|l| !l.contains("GameBlocker") && !l.contains("network.trr.mode"))
+                    .filter(|l| !l.contains("ParentShield") && !l.contains("network.trr.mode"))
                     .collect();
 
                 let new_content = lines.join("\n");
@@ -202,7 +202,7 @@ fn disable_chrome_doh() -> io::Result<Vec<String>> {
         // Try system-wide policy (requires root)
         let policy_dir = PathBuf::from(format!("/etc/{}/policies/managed", policy_suffix));
         if fs::create_dir_all(&policy_dir).is_ok() {
-            let policy_file = policy_dir.join("gameblocker.json");
+            let policy_file = policy_dir.join("parentshield.json");
             if fs::write(&policy_file, policy_content).is_ok() {
                 configured.push(browser_name.to_string());
                 info!("Created {} policy: {:?}", browser_name, policy_file);
@@ -295,7 +295,7 @@ fn enable_chrome_doh() -> io::Result<Vec<String>> {
 
     for (browser_name, policy_suffix, config_dir_name) in get_chromium_browsers() {
         // Remove system policy
-        let policy_file = PathBuf::from(format!("/etc/{}/policies/managed/gameblocker.json", policy_suffix));
+        let policy_file = PathBuf::from(format!("/etc/{}/policies/managed/parentshield.json", policy_suffix));
         if policy_file.exists() {
             if fs::remove_file(&policy_file).is_ok() {
                 restored.push(browser_name.to_string());
@@ -381,7 +381,7 @@ pub fn is_doh_disabled() -> bool {
     }
 
     // Check Chrome policies
-    let policy_file = PathBuf::from("/etc/opt/chrome/policies/managed/gameblocker.json");
+    let policy_file = PathBuf::from("/etc/opt/chrome/policies/managed/parentshield.json");
     if policy_file.exists() {
         return true;
     }

@@ -19,7 +19,7 @@ pub fn generate_master_password(machine_id: &str, installation_timestamp: u64) -
     let mut hasher = Sha256::new();
     hasher.update(machine_id.as_bytes());
     hasher.update(installation_timestamp.to_le_bytes());
-    hasher.update(b"gameblocker-master-recovery-v1");
+    hasher.update(b"parentshield-master-recovery-v1");
 
     let hash = hasher.finalize();
 

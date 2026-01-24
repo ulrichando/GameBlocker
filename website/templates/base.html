@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ParentShield{% endblock %}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    {% block extra_css %}{% endblock %}
+    <style>
+        /* Base layout styles */
+        .app-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+        }
+        .navbar {
+            background: var(--gradient-dark);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .navbar-brand {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        .navbar-nav {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+        .navbar-nav a {
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .navbar-nav a:hover {
+            color: white;
+        }
+        .btn-nav {
+            background: var(--primary-500);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            text-decoration: none;
+        }
+        .btn-nav:hover {
+            background: var(--primary-600);
+        }
+        /* Flash messages */
+        .flash-messages {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 1000;
+        }
+        .flash {
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            animation: slideIn 0.3s ease;
+        }
+        .flash-success {
+            background: var(--success);
+            color: white;
+        }
+        .flash-error {
+            background: var(--error);
+            color: white;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <nav class="navbar">
+            <a href="/" class="navbar-brand">ParentShield</a>
+            <div class="navbar-nav">
+                {% block nav_items %}
+                <a href="/#features">Features</a>
+                <a href="/#pricing">Pricing</a>
+                <a href="/support">Support</a>
+                {% if user %}
+                    <a href="/account/dashboard">Dashboard</a>
+                    <a href="#" onclick="logout()">Logout</a>
+                {% else %}
+                    <a href="/auth/login" class="btn-nav">Login</a>
+                {% endif %}
+                {% endblock %}
+            </div>
+        </nav>
+
+        <div id="flash-messages" class="flash-messages"></div>
+
+        <main class="main-content">
+            {% block content %}{% endblock %}
+        </main>
+
+        <footer style="background: var(--slate-900); color: var(--slate-400); padding: 2rem; text-align: center;">
+            <p>&copy; 2024 ParentShield. All rights reserved.</p>
+            <p style="margin-top: 0.5rem;">
+                <a href="/privacy" style="color: var(--slate-400);">Privacy Policy</a> |
+                <a href="/terms" style="color: var(--slate-400);">Terms of Service</a>
+            </p>
+        </footer>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+    <script>
+        // Flash message helper
+        function showFlash(message, type = 'success') {
+            const container = document.getElementById('flash-messages');
+            const flash = document.createElement('div');
+            flash.className = `flash flash-${type}`;
+            flash.textContent = message;
+            container.appendChild(flash);
+            setTimeout(() => flash.remove(), 5000);
+        }
+
+        // Logout function
+        async function logout() {
+            const token = localStorage.getItem('refresh_token');
+            if (token) {
+                await fetch('/auth/logout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ refresh_token: token })
+                });
+            }
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            window.location.href = '/auth/login';
+        }
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

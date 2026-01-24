@@ -3,7 +3,7 @@
 use super::{ServiceError, ServiceManager, ServiceStatus};
 use std::process::Command;
 
-const SERVICE_NAME: &str = "GameBlocker";
+const SERVICE_NAME: &str = "ParentShield";
 
 pub struct WindowsServiceManager {
     exe_path: String,
@@ -13,7 +13,7 @@ impl WindowsServiceManager {
     pub fn new() -> Self {
         let exe_path = std::env::current_exe()
             .map(|p| p.display().to_string())
-            .unwrap_or_else(|_| "C:\\Program Files\\GameBlocker\\gameblocker.exe".to_string());
+            .unwrap_or_else(|_| "C:\\Program Files\\ParentShield\\parentshield.exe".to_string());
 
         Self { exe_path }
     }
@@ -28,7 +28,7 @@ impl ServiceManager for WindowsServiceManager {
                 SERVICE_NAME,
                 &format!("binPath= \"{}\" --daemon", self.exe_path),
                 "start= auto",
-                "DisplayName= GameBlocker Parental Control",
+                "DisplayName= ParentShield Parental Control",
             ])
             .output()
             .map_err(|e| ServiceError::InstallFailed(e.to_string()))?;
@@ -54,11 +54,11 @@ impl ServiceManager for WindowsServiceManager {
             .args([
                 "description",
                 SERVICE_NAME,
-                "GameBlocker parental control service for blocking games and AI services.",
+                "ParentShield parental control service for blocking games and AI services.",
             ])
             .output();
 
-        tracing::info!("GameBlocker Windows service installed");
+        tracing::info!("ParentShield Windows service installed");
         Ok(())
     }
 
@@ -78,7 +78,7 @@ impl ServiceManager for WindowsServiceManager {
             ));
         }
 
-        tracing::info!("GameBlocker Windows service uninstalled");
+        tracing::info!("ParentShield Windows service uninstalled");
         Ok(())
     }
 

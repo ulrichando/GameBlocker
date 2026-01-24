@@ -101,3 +101,46 @@ pub async fn get_master_password(password: String) -> Result<Option<String>, Str
 
     manager.get_master_password().map(Some).map_err(|e| e.to_string())
 }
+
+/// Enable uninstall protection (called after setup)
+#[tauri::command]
+pub async fn enable_uninstall_protection() -> Result<bool, String> {
+    crate::security::uninstall_protection::enable_protection()
+        .map(|_| true)
+        .map_err(|e| e.to_string())
+}
+
+/// Disable uninstall protection (requires password)
+#[tauri::command]
+pub async fn disable_uninstall_protection(password: String) -> Result<bool, String> {
+    // Verify password first
+    crate::security::uninstall_protection::verify_uninstall_password(&password)
+        .map_err(|e| e.to_string())?;
+
+    crate::security::uninstall_protection::disable_protection()
+        .map(|_| true)
+        .map_err(|e| e.to_string())
+}
+
+/// Uninstall the application (requires password)
+#[tauri::command]
+pub async fn uninstall_app(password: String) -> Result<bool, String> {
+    crate::security::uninstall_protection::uninstall_with_password(&password)
+        .map(|_| true)
+        .map_err(|e| e.to_string())
+}
+
+/// Quit the application (requires password)
+#[tauri::command]
+pub async fn quit_with_password(password: String, app: tauri::AppHandle) -> Result<bool, String> {
+    let manager = ConfigManager::new().map_err(|e| e.to_string())?;
+
+    // Verify password first
+    if !manager.verify_password(&password).map_err(|e| e.to_string())? {
+        return Ok(false);
+    }
+
+    // Password correct, exit the app
+    app.exit(0);
+    Ok(true)
+}

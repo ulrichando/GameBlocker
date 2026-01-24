@@ -4,8 +4,8 @@ use super::{ServiceError, ServiceManager, ServiceStatus};
 use std::fs;
 use std::process::Command;
 
-const SERVICE_LABEL: &str = "com.gameblocker.daemon";
-const PLIST_PATH: &str = "/Library/LaunchDaemons/com.gameblocker.daemon.plist";
+const SERVICE_LABEL: &str = "com.parentshield.daemon";
+const PLIST_PATH: &str = "/Library/LaunchDaemons/com.parentshield.daemon.plist";
 
 pub struct MacOSServiceManager {
     exe_path: String,
@@ -15,7 +15,7 @@ impl MacOSServiceManager {
     pub fn new() -> Self {
         let exe_path = std::env::current_exe()
             .map(|p| p.display().to_string())
-            .unwrap_or_else(|_| "/Applications/GameBlocker.app/Contents/MacOS/GameBlocker".to_string());
+            .unwrap_or_else(|_| "/Applications/ParentShield.app/Contents/MacOS/ParentShield".to_string());
 
         Self { exe_path }
     }
@@ -40,9 +40,9 @@ impl ServiceManager for MacOSServiceManager {
     <key>KeepAlive</key>
     <true/>
     <key>StandardOutPath</key>
-    <string>/var/log/gameblocker.log</string>
+    <string>/var/log/parentshield.log</string>
     <key>StandardErrorPath</key>
-    <string>/var/log/gameblocker.error.log</string>
+    <string>/var/log/parentshield.error.log</string>
 </dict>
 </plist>
 "#,
@@ -64,7 +64,7 @@ impl ServiceManager for MacOSServiceManager {
             ));
         }
 
-        tracing::info!("GameBlocker launchd daemon installed");
+        tracing::info!("ParentShield launchd daemon installed");
         Ok(())
     }
 
@@ -78,7 +78,7 @@ impl ServiceManager for MacOSServiceManager {
         fs::remove_file(PLIST_PATH)
             .map_err(|e| ServiceError::RemoveFailed(e.to_string()))?;
 
-        tracing::info!("GameBlocker launchd daemon uninstalled");
+        tracing::info!("ParentShield launchd daemon uninstalled");
         Ok(())
     }
 

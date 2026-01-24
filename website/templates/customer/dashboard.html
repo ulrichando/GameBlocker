@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - ParentShield{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+    .welcome-header {
+        margin-bottom: 2rem;
+    }
+    .welcome-header h1 {
+        color: var(--slate-900);
+        font-size: 1.75rem;
+    }
+    .welcome-header p {
+        color: var(--slate-600);
+    }
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    .card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: var(--shadow-md);
+    }
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    .card-title {
+        font-weight: 600;
+        color: var(--slate-900);
+    }
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    .status-active {
+        background: #dcfce7;
+        color: #16a34a;
+    }
+    .status-inactive {
+        background: #fef2f2;
+        color: #dc2626;
+    }
+    .subscription-info p {
+        color: var(--slate-600);
+        margin-bottom: 0.5rem;
+    }
+    .subscription-info strong {
+        color: var(--slate-900);
+    }
+    .btn {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-weight: 500;
+        text-decoration: none;
+        cursor: pointer;
+        border: none;
+    }
+    .btn-primary {
+        background: var(--primary-500);
+        color: white;
+    }
+    .btn-outline {
+        border: 1px solid var(--slate-300);
+        color: var(--slate-700);
+        background: white;
+    }
+    .quick-actions {
+        display: flex;
+        gap: 0.75rem;
+        margin-top: 1rem;
+    }
+    .transaction-list {
+        margin-top: 1rem;
+    }
+    .transaction-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--slate-100);
+    }
+    .transaction-item:last-child {
+        border-bottom: none;
+    }
+    .transaction-date {
+        color: var(--slate-500);
+        font-size: 0.875rem;
+    }
+    .transaction-amount {
+        font-weight: 600;
+        color: var(--slate-900);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="welcome-header">
+        <h1>Welcome, {{ user.first_name or user.email.split('@')[0] }}!</h1>
+        <p>Manage your ParentShield subscription</p>
+    </div>
+
+    <div class="dashboard-grid">
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">Subscription</span>
+                {% if subscription and subscription.status.value == 'active' %}
+                    <span class="status-badge status-active">Active</span>
+                {% else %}
+                    <span class="status-badge status-inactive">Inactive</span>
+                {% endif %}
+            </div>
+            <div class="subscription-info">
+                {% if subscription %}
+                    <p><strong>{{ subscription.plan_name }}</strong> - ${{ subscription.amount }}/month</p>
+                    {% if subscription.current_period_end %}
+                        <p>Next billing: {{ subscription.current_period_end.strftime('%B %d, %Y') }}</p>
+                    {% endif %}
+                {% else %}
+                    <p>No active subscription</p>
+                {% endif %}
+            </div>
+            <div class="quick-actions">
+                <a href="/account/subscription" class="btn btn-outline">Manage</a>
+                {% if subscription and subscription.status.value == 'active' %}
+                    <a href="/account/downloads" class="btn btn-primary">Download</a>
+                {% else %}
+                    <a href="/#pricing" class="btn btn-primary">Subscribe</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">Recent Transactions</span>
+                <a href="/account/transactions" style="color: var(--primary-600); text-decoration: none; font-size: 0.875rem;">View All</a>
+            </div>
+            <div class="transaction-list">
+                {% if transactions %}
+                    {% for tx in transactions[:5] %}
+                    <div class="transaction-item">
+                        <div>
+                            <div>{{ tx.description or 'Subscription Payment' }}</div>
+                            <div class="transaction-date">{{ tx.created_at.strftime('%b %d, %Y') }}</div>
+                        </div>
+                        <span class="transaction-amount">${{ "%.2f"|format(tx.amount) }}</span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p style="color: var(--slate-500);">No transactions yet</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title">Quick Links</span>
+        </div>
+        <div class="quick-actions">
+            <a href="/account/downloads" class="btn btn-outline">Downloads</a>
+            <a href="/account/settings" class="btn btn-outline">Settings</a>
+            <a href="/support" class="btn btn-outline">Support</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

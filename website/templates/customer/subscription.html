@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}Subscription - ParentShield{% endblock %}
+
+{% block extra_css %}
+<style>
+    .subscription-page {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    .card {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: var(--shadow-md);
+        margin-bottom: 1.5rem;
+    }
+    .card-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--slate-900);
+        margin-bottom: 1.5rem;
+    }
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--slate-100);
+    }
+    .info-row:last-child {
+        border-bottom: none;
+    }
+    .info-label {
+        color: var(--slate-600);
+    }
+    .info-value {
+        font-weight: 500;
+        color: var(--slate-900);
+    }
+    .status-active {
+        color: var(--success);
+    }
+    .status-inactive {
+        color: var(--error);
+    }
+    .btn {
+        display: inline-block;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 500;
+        text-decoration: none;
+        cursor: pointer;
+        border: none;
+        margin-top: 1rem;
+    }
+    .btn-danger {
+        background: #fef2f2;
+        color: #dc2626;
+        border: 1px solid #fecaca;
+    }
+    .btn-primary {
+        background: var(--primary-500);
+        color: white;
+    }
+    .no-subscription {
+        text-align: center;
+        padding: 2rem;
+    }
+    .no-subscription p {
+        color: var(--slate-600);
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="subscription-page">
+    <h1 style="margin-bottom: 1.5rem; color: var(--slate-900);">Subscription</h1>
+
+    {% if subscription %}
+    <div class="card">
+        <h2 class="card-title">Current Plan</h2>
+        <div class="info-row">
+            <span class="info-label">Plan</span>
+            <span class="info-value">{{ subscription.plan_name }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Price</span>
+            <span class="info-value">${{ "%.2f"|format(subscription.amount) }}/{{ subscription.currency }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Status</span>
+            <span class="info-value {% if subscription.status.value == 'active' %}status-active{% else %}status-inactive{% endif %}">
+                {{ subscription.status.value|capitalize }}
+            </span>
+        </div>
+        {% if subscription.current_period_start %}
+        <div class="info-row">
+            <span class="info-label">Current Period</span>
+            <span class="info-value">
+                {{ subscription.current_period_start.strftime('%b %d') }} - {{ subscription.current_period_end.strftime('%b %d, %Y') }}
+            </span>
+        </div>
+        {% endif %}
+        {% if subscription.status.value == 'active' %}
+        <button class="btn btn-danger" onclick="cancelSubscription()">Cancel Subscription</button>
+        {% elif subscription.status.value == 'canceled' %}
+        <button class="btn btn-primary" onclick="reactivateSubscription()">Reactivate Subscription</button>
+        {% endif %}
+    </div>
+    {% else %}
+    <div class="card no-subscription">
+        <p>You don't have an active subscription.</p>
+        <a href="/#pricing" class="btn btn-primary">Subscribe Now</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    async function cancelSubscription() {
+        if (!confirm('Are you sure you want to cancel your subscription?')) return;
+
+        try {
+            const token = localStorage.getItem('access_token');
+            const response = await fetch('/account/subscription/cancel', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (response.ok) {
+                showFlash('Subscription canceled');
+                location.reload();
+            } else {
+                showFlash('Failed to cancel subscription', 'error');
+            }
+        } catch (error) {
+            showFlash('An error occurred', 'error');
+        }
+    }
+
+    async function reactivateSubscription() {
+        try {
+            const token = localStorage.getItem('access_token');
+            const response = await fetch('/account/subscription/reactivate', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (response.ok) {
+                showFlash('Subscription reactivated');
+                location.reload();
+            } else {
+                showFlash('Failed to reactivate subscription', 'error');
+            }
+        } catch (error) {
+            showFlash('An error occurred', 'error');
+        }
+    }
+</script>
+{% endblock %}

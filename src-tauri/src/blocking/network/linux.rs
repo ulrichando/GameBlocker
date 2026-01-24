@@ -45,8 +45,8 @@ const DOH_PROVIDER_IPS: &[&str] = &[
     "8.20.247.20",
 ];
 
-/// Chain name for GameBlocker rules
-const CHAIN_NAME: &str = "GAMEBLOCKER";
+/// Chain name for ParentShield rules
+const CHAIN_NAME: &str = "PARENTSHIELD";
 
 /// Configure DNS redirect to local proxy using iptables
 pub fn setup_dns_redirect(proxy_port: u16) -> Result<(), LinuxNetworkError> {
@@ -222,7 +222,7 @@ fn run_iptables_batch(script: &str) -> Result<(), LinuxNetworkError> {
     Ok(())
 }
 
-/// Build script to create the GameBlocker chain if it doesn't exist
+/// Build script to create the ParentShield chain if it doesn't exist
 fn build_ensure_chain_script() -> String {
     format!(
         r#"
@@ -300,7 +300,7 @@ pub fn block_doh_providers() -> Result<(), LinuxNetworkError> {
     Ok(())
 }
 
-/// Remove all GameBlocker firewall rules
+/// Remove all ParentShield firewall rules
 pub fn unblock_doh_providers() -> Result<(), LinuxNetworkError> {
     tracing::info!("Removing DoH blocking rules...");
 
@@ -407,7 +407,7 @@ pub fn remove_network_blocking() -> Result<(), LinuxNetworkError> {
     // Build a combined script to remove all rules
     let script = format!(
         r#"
-# Flush the GameBlocker chains
+# Flush the ParentShield chains
 iptables -F {chain} 2>/dev/null || true
 ip6tables -F {chain} 2>/dev/null || true
 

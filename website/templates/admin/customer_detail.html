@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+
+{% block title %}Customer Details - Admin - ParentShield{% endblock %}
+
+{% block nav_items %}
+<a href="/admin/dashboard">Dashboard</a>
+<a href="/admin/customers">Customers</a>
+<a href="/admin/transactions">Transactions</a>
+<a href="#" onclick="logout()">Logout</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .customer-detail {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+    .page-header {
+        margin-bottom: 2rem;
+    }
+    .page-header a {
+        color: var(--slate-500);
+        text-decoration: none;
+        font-size: 0.875rem;
+    }
+    .page-header h1 {
+        color: var(--slate-900);
+        font-size: 1.75rem;
+        margin-top: 0.5rem;
+    }
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    .card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: var(--shadow-md);
+    }
+    .card-title {
+        font-weight: 600;
+        color: var(--slate-900);
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--slate-100);
+    }
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+    }
+    .info-label {
+        color: var(--slate-500);
+    }
+    .info-value {
+        font-weight: 500;
+        color: var(--slate-900);
+    }
+    .status-active { color: var(--success); }
+    .status-inactive { color: var(--error); }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    th, td {
+        padding: 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid var(--slate-100);
+    }
+    th {
+        color: var(--slate-500);
+        font-weight: 500;
+        font-size: 0.875rem;
+    }
+    .btn-sm {
+        padding: 0.25rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.875rem;
+        cursor: pointer;
+        border: none;
+        margin-right: 0.5rem;
+    }
+    .btn-suspend { background: #fef2f2; color: #dc2626; }
+    .btn-activate { background: #f0fdf4; color: #16a34a; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="customer-detail">
+    <div class="page-header">
+        <a href="/admin/customers">← Back to Customers</a>
+        <h1>{{ customer.first_name or '' }} {{ customer.last_name or customer.email }}</h1>
+    </div>
+
+    <div class="info-grid">
+        <div class="card">
+            <div class="card-title">Customer Information</div>
+            <div class="info-row">
+                <span class="info-label">Email</span>
+                <span class="info-value">{{ customer.email }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Name</span>
+                <span class="info-value">{{ customer.first_name or '-' }} {{ customer.last_name or '' }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Account Status</span>
+                <span class="info-value {% if customer.is_active %}status-active{% else %}status-inactive{% endif %}">
+                    {{ 'Active' if customer.is_active else 'Suspended' }}
+                </span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Email Verified</span>
+                <span class="info-value">{{ 'Yes' if customer.is_verified else 'No' }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Joined</span>
+                <span class="info-value">{{ customer.created_at.strftime('%B %d, %Y') }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Total Spent</span>
+                <span class="info-value">${{ "%.2f"|format(total_spent) }}</span>
+            </div>
+            <div style="margin-top: 1rem;">
+                {% if customer.is_active %}
+                <button onclick="suspendUser()" class="btn-sm btn-suspend">Suspend Account</button>
+                {% else %}
+                <button onclick="activateUser()" class="btn-sm btn-activate">Activate Account</button>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Subscription</div>
+            {% if subscription %}
+            <div class="info-row">
+                <span class="info-label">Plan</span>
+                <span class="info-value">{{ subscription.plan_name }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Status</span>
+                <span class="info-value {% if subscription.status.value == 'active' %}status-active{% else %}status-inactive{% endif %}">
+                    {{ subscription.status.value|capitalize }}
+                </span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Amount</span>
+                <span class="info-value">${{ "%.2f"|format(subscription.amount) }}/month</span>
+            </div>
+            {% if subscription.current_period_end %}
+            <div class="info-row">
+                <span class="info-label">Next Billing</span>
+                <span class="info-value">{{ subscription.current_period_end.strftime('%B %d, %Y') }}</span>
+            </div>
+            {% endif %}
+            {% else %}
+            <p style="color: var(--slate-500);">No subscription</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">Transaction History</div>
+        {% if transactions %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tx in transactions %}
+                <tr>
+                    <td>{{ tx.created_at.strftime('%b %d, %Y') }}</td>
+                    <td>{{ tx.description or 'Subscription Payment' }}</td>
+                    <td>${{ "%.2f"|format(tx.amount) }}</td>
+                    <td class="status-{{ 'active' if tx.status.value == 'succeeded' else 'inactive' }}">
+                        {{ tx.status.value|capitalize }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="color: var(--slate-500);">No transactions</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const token = localStorage.getItem('access_token');
+    const customerId = '{{ customer.id }}';
+
+    async function suspendUser() {
+        if (!confirm('Suspend this user?')) return;
+        await fetch(`/admin/customers/${customerId}/suspend`, {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        location.reload();
+    }
+
+    async function activateUser() {
+        await fetch(`/admin/customers/${customerId}/activate`, {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        location.reload();
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}Transactions - ParentShield{% endblock %}
+
+{% block extra_css %}
+<style>
+    .transactions-page {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    .card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: var(--shadow-md);
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    th, td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid var(--slate-100);
+    }
+    th {
+        color: var(--slate-500);
+        font-weight: 500;
+        font-size: 0.875rem;
+    }
+    td {
+        color: var(--slate-900);
+    }
+    .status-succeeded {
+        color: var(--success);
+    }
+    .status-failed {
+        color: var(--error);
+    }
+    .status-pending {
+        color: var(--warning);
+    }
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: var(--slate-500);
+    }
+    a.invoice-link {
+        color: var(--primary-600);
+        text-decoration: none;
+    }
+    a.invoice-link:hover {
+        text-decoration: underline;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="transactions-page">
+    <h1 style="margin-bottom: 1.5rem; color: var(--slate-900);">Transaction History</h1>
+
+    <div class="card">
+        {% if transactions %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Invoice</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tx in transactions %}
+                <tr>
+                    <td>{{ tx.created_at.strftime('%b %d, %Y') }}</td>
+                    <td>{{ tx.description or 'Subscription Payment' }}</td>
+                    <td>${{ "%.2f"|format(tx.amount) }} {{ tx.currency }}</td>
+                    <td class="status-{{ tx.status.value }}">{{ tx.status.value|capitalize }}</td>
+                    <td>
+                        {% if tx.invoice_url %}
+                        <a href="{{ tx.invoice_url }}" class="invoice-link" target="_blank">View</a>
+                        {% else %}
+                        -
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">
+            <p>No transactions yet</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

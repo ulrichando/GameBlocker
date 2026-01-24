@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to ParentShield!</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .success-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(180deg, var(--primary-50) 0%, var(--slate-50) 100%);
+            padding: 2rem;
+        }
+
+        .success-card {
+            background: white;
+            border-radius: 24px;
+            padding: 4rem;
+            text-align: center;
+            max-width: 600px;
+            box-shadow: var(--shadow-xl);
+        }
+
+        .success-icon {
+            width: 100px;
+            height: 100px;
+            background: var(--gradient-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem;
+            animation: scaleIn 0.5s ease-out;
+        }
+
+        .success-icon svg {
+            width: 50px;
+            height: 50px;
+            fill: white;
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .success-card h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            color: var(--slate-900);
+        }
+
+        .success-card p {
+            color: var(--slate-600);
+            font-size: 1.125rem;
+            margin-bottom: 2rem;
+            line-height: 1.7;
+        }
+
+        .next-steps {
+            background: var(--slate-50);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: left;
+            margin-bottom: 2rem;
+        }
+
+        .next-steps h3 {
+            font-size: 1.125rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--slate-900);
+        }
+
+        .next-steps ol {
+            margin-left: 1.25rem;
+            color: var(--slate-600);
+        }
+
+        .next-steps li {
+            margin-bottom: 0.75rem;
+        }
+
+        .confetti {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 1000;
+        }
+
+        .confetti-piece {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            animation: confetti-fall 3s ease-out forwards;
+        }
+
+        @keyframes confetti-fall {
+            0% {
+                opacity: 1;
+                transform: translateY(-100px) rotate(0deg);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(100vh) rotate(720deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="confetti" id="confetti"></div>
+
+    <div class="success-page">
+        <div class="success-card">
+            <div class="success-icon">
+                <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+            </div>
+
+            <h1>Welcome to ParentShield!</h1>
+
+            <p>Your subscription is now active. Thank you for trusting us to help protect your family's digital life.</p>
+
+            <div class="next-steps">
+                <h3>Next Steps:</h3>
+                <ol>
+                    <li>Download ParentShield for your operating system</li>
+                    <li>Install the application and create your master password</li>
+                    <li>Configure your blocking rules and schedules</li>
+                    <li>Install on additional family devices</li>
+                </ol>
+            </div>
+
+            <a href="/#download" class="btn btn-primary btn-lg">
+                <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                Download Now
+            </a>
+
+            <p style="margin-top: 1.5rem; font-size: 0.875rem; color: var(--slate-500);">
+                Need help? <a href="/support" style="color: var(--primary-600);">Contact our support team</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Confetti animation
+        const confettiContainer = document.getElementById('confetti');
+        const colors = ['#4F46E5', '#7C3AED', '#EC4899', '#10B981', '#F59E0B'];
+
+        for (let i = 0; i < 50; i++) {
+            const piece = document.createElement('div');
+            piece.className = 'confetti-piece';
+            piece.style.left = Math.random() * 100 + '%';
+            piece.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            piece.style.animationDelay = Math.random() * 2 + 's';
+            piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+            confettiContainer.appendChild(piece);
+        }
+
+        // Remove confetti after animation
+        setTimeout(() => {
+            confettiContainer.remove();
+        }, 5000);
+    </script>
+</body>
+</html>

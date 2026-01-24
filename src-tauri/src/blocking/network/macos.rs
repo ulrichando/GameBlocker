@@ -14,13 +14,13 @@ pub enum MacOSNetworkError {
     RootRequired,
 }
 
-const PF_RULES_PATH: &str = "/etc/pf.anchors/gameblocker";
+const PF_RULES_PATH: &str = "/etc/pf.anchors/parentshield";
 
 /// Configure DNS redirect using pf
 pub fn setup_dns_redirect(proxy_port: u16) -> Result<(), MacOSNetworkError> {
     // Create pf rules file
     let rules = format!(
-        r#"# GameBlocker DNS redirect rules
+        r#"# ParentShield DNS redirect rules
 rdr pass on lo0 proto udp from any to any port 53 -> 127.0.0.1 port {}
 "#,
         proxy_port
@@ -30,7 +30,7 @@ rdr pass on lo0 proto udp from any to any port 53 -> 127.0.0.1 port {}
 
     // Load the anchor
     let output = Command::new("pfctl")
-        .args(["-a", "gameblocker", "-f", PF_RULES_PATH])
+        .args(["-a", "parentshield", "-f", PF_RULES_PATH])
         .output()
         .map_err(|e| MacOSNetworkError::CommandFailed(e.to_string()))?;
 
@@ -57,7 +57,7 @@ rdr pass on lo0 proto udp from any to any port 53 -> 127.0.0.1 port {}
 pub fn remove_dns_redirect() -> Result<(), MacOSNetworkError> {
     // Flush the anchor
     let _ = Command::new("pfctl")
-        .args(["-a", "gameblocker", "-F", "all"])
+        .args(["-a", "parentshield", "-F", "all"])
         .output();
 
     // Remove rules file
@@ -73,7 +73,7 @@ pub fn remove_dns_redirect() -> Result<(), MacOSNetworkError> {
 
 /// Block common VPN ports using pf
 pub fn block_vpn_ports() -> Result<(), MacOSNetworkError> {
-    let rules = r#"# GameBlocker VPN blocking rules
+    let rules = r#"# ParentShield VPN blocking rules
 block out proto udp to any port 1194   # OpenVPN
 block out proto tcp to any port 1194   # OpenVPN
 block out proto udp to any port 500    # IKEv2
@@ -82,11 +82,11 @@ block out proto udp to any port 51820  # WireGuard
 block out proto udp to any port 1701   # L2TP
 "#;
 
-    let vpn_rules_path = "/etc/pf.anchors/gameblocker-vpn";
+    let vpn_rules_path = "/etc/pf.anchors/parentshield-vpn";
     fs::write(vpn_rules_path, rules)?;
 
     let output = Command::new("pfctl")
-        .args(["-a", "gameblocker-vpn", "-f", vpn_rules_path])
+        .args(["-a", "parentshield-vpn", "-f", vpn_rules_path])
         .output()
         .map_err(|e| MacOSNetworkError::CommandFailed(e.to_string()))?;
 
@@ -104,10 +104,10 @@ block out proto udp to any port 1701   # L2TP
 /// Unblock VPN ports
 pub fn unblock_vpn_ports() -> Result<(), MacOSNetworkError> {
     let _ = Command::new("pfctl")
-        .args(["-a", "gameblocker-vpn", "-F", "all"])
+        .args(["-a", "parentshield-vpn", "-F", "all"])
         .output();
 
-    let _ = fs::remove_file("/etc/pf.anchors/gameblocker-vpn");
+    let _ = fs::remove_file("/etc/pf.anchors/parentshield-vpn");
 
     Ok(())
 }

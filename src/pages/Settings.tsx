@@ -334,7 +334,7 @@ export function Settings({ onBack }: SettingsPageProps) {
             <CardTitle className="text-lg">About</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 text-sm text-muted-foreground">
-            <p><strong>GameBlocker</strong> v0.1.0</p>
+            <p><strong>ParentShield</strong> v0.1.0</p>
             <p>Cross-platform parental control software for blocking games and AI services.</p>
           </CardContent>
         </Card>

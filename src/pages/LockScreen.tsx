@@ -60,7 +60,7 @@ export function LockScreen() {
               <Lock className="h-8 w-8 text-gray-600 dark:text-gray-400" />
             )}
           </div>
-          <CardTitle className="text-2xl">GameBlocker</CardTitle>
+          <CardTitle className="text-2xl">ParentShield</CardTitle>
           <CardDescription>
             {currentlyBlocking
               ? "Protection is active. Enter password to access settings."

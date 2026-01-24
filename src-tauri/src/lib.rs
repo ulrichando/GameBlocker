@@ -1,4 +1,4 @@
-//! GameBlocker - Cross-platform parental control software.
+//! ParentShield - Cross-platform parental control software.
 
 pub mod blocking;
 pub mod commands;
@@ -8,9 +8,40 @@ pub mod scheduler;
 pub mod security;
 
 use commands::{
-    auth::*, blocking::*, blocklist::*, daemon::*, schedule::*,
+    auth::*, blocking::*, blocklist::*, daemon::*, license::*, schedule::*,
 };
 use daemon::service::{get_service_manager, ServiceStatus};
+use tauri::{
+    menu::{Menu, MenuItem},
+    tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
+    Emitter, Manager, WindowEvent,
+};
+
+/// Set up signal handlers to ignore terminate signals (Unix only)
+#[cfg(unix)]
+fn setup_signal_protection() {
+    // Ignore SIGTERM, SIGINT, SIGHUP - app can only be closed via password
+    unsafe {
+        libc::signal(libc::SIGTERM, libc::SIG_IGN);
+        libc::signal(libc::SIGINT, libc::SIG_IGN);
+        libc::signal(libc::SIGHUP, libc::SIG_IGN);
+    }
+
+    tracing::info!("Signal protection enabled - app will resist termination signals");
+}
+
+/// Set up process protection on Windows
+#[cfg(windows)]
+fn setup_signal_protection() {
+    use windows::Win32::System::Threading::{SetProcessShutdownParameters, SHUTDOWN_NORETRY};
+
+    // Set high priority for shutdown (last to be closed)
+    unsafe {
+        let _ = SetProcessShutdownParameters(0x4FF, SHUTDOWN_NORETRY);
+    }
+
+    tracing::info!("Windows process protection enabled");
+}
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -18,20 +49,88 @@ pub fn run() {
     tracing_subscriber::fmt()
         .with_env_filter(
             tracing_subscriber::EnvFilter::from_default_env()
-                .add_directive("gameblocker=info".parse().unwrap()),
+                .add_directive("parentshield=info".parse().unwrap()),
         )
         .init();
 
-    tracing::info!("Starting GameBlocker");
+    tracing::info!("Starting ParentShield");
+
+    // Set up protection against being killed
+    setup_signal_protection();
 
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .setup(|_app| {
+        .setup(|app| {
+            // Create system tray menu
+            let show_item = MenuItem::with_id(app, "show", "Show ParentShield", true, None::<&str>)?;
+            let quit_item = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
+            let menu = Menu::with_items(app, &[&show_item, &quit_item])?;
+
+            // Create system tray icon
+            let _tray = TrayIconBuilder::new()
+                .icon(app.default_window_icon().unwrap().clone())
+                .menu(&menu)
+                .tooltip("ParentShield - Parental Control")
+                .on_menu_event(|app, event| {
+                    match event.id.as_ref() {
+                        "show" => {
+                            if let Some(window) = app.get_webview_window("main") {
+                                let _ = window.show();
+                                let _ = window.set_focus();
+                            }
+                        }
+                        "quit" => {
+                            // Show window and emit event to request password
+                            if let Some(window) = app.get_webview_window("main") {
+                                let _ = window.show();
+                                let _ = window.set_focus();
+                                // Emit quit request event to frontend
+                                let _ = window.emit("quit-requested", ());
+                            }
+                        }
+                        _ => {}
+                    }
+                })
+                .on_tray_icon_event(|tray, event| {
+                    // Double-click to show window
+                    if let TrayIconEvent::Click {
+                        button: MouseButton::Left,
+                        button_state: MouseButtonState::Up,
+                        ..
+                    } = event
+                    {
+                        if let Some(window) = tray.app_handle().get_webview_window("main") {
+                            let _ = window.show();
+                            let _ = window.set_focus();
+                        }
+                    }
+                })
+                .build(app)?;
+
+            // Initialize license state from local storage
+            if let Err(e) = commands::license::init_license_state() {
+                tracing::warn!("Failed to initialize license state: {}", e);
+            }
+
             // Ensure daemon is running on app startup
             std::thread::spawn(|| {
                 ensure_daemon_running();
+                // Enable uninstall protection after startup
+                if let Err(e) = security::uninstall_protection::enable_protection() {
+                    tracing::warn!("Failed to enable uninstall protection: {}", e);
+                }
             });
+
             Ok(())
+        })
+        .on_window_event(|window, event| {
+            // Minimize to tray instead of closing
+            if let WindowEvent::CloseRequested { api, .. } = event {
+                // Hide the window instead of closing
+                let _ = window.hide();
+                // Prevent the window from actually closing
+                api.prevent_close();
+            }
         })
         .invoke_handler(tauri::generate_handler![
             // Auth commands
@@ -41,6 +140,10 @@ pub fn run() {
             change_password,
             reset_with_master,
             get_master_password,
+            quit_with_password,
+            enable_uninstall_protection,
+            disable_uninstall_protection,
+            uninstall_app,
             // Blocking commands
             get_blocking_status,
             set_game_blocking,
@@ -84,6 +187,13 @@ pub fn run() {
             daemon_apply_blocking,
             daemon_enable_firewall,
             daemon_disable_firewall,
+            // License commands
+            platform_login,
+            platform_logout,
+            check_license,
+            get_license_state,
+            is_feature_available,
+            get_max_blocks,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

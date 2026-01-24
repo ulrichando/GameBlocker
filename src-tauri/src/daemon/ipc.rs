@@ -5,11 +5,11 @@ use serde::{Deserialize, Serialize};
 
 /// Socket path for Unix domain socket
 #[cfg(unix)]
-pub const SOCKET_PATH: &str = "/run/gameblocker/gameblocker.sock";
+pub const SOCKET_PATH: &str = "/run/parentshield/parentshield.sock";
 
 /// Named pipe path for Windows
 #[cfg(windows)]
-pub const PIPE_NAME: &str = r"\\.\pipe\gameblocker";
+pub const PIPE_NAME: &str = r"\\.\pipe\parentshield";
 
 /// Request messages from GUI to daemon
 #[derive(Debug, Clone, Serialize, Deserialize)]

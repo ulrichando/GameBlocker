@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}Transactions - Admin - ParentShield{% endblock %}
+
+{% block nav_items %}
+<a href="/admin/dashboard">Dashboard</a>
+<a href="/admin/customers">Customers</a>
+<a href="/admin/transactions">Transactions</a>
+<a href="#" onclick="logout()">Logout</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .transactions-page {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+    .page-header h1 {
+        color: var(--slate-900);
+        font-size: 1.75rem;
+    }
+    .btn {
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-weight: 500;
+        text-decoration: none;
+        cursor: pointer;
+        border: none;
+    }
+    .btn-primary {
+        background: var(--primary-500);
+        color: white;
+    }
+    .card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: var(--shadow-md);
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    th, td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid var(--slate-100);
+    }
+    th {
+        color: var(--slate-500);
+        font-weight: 500;
+        font-size: 0.875rem;
+    }
+    .status-succeeded { color: var(--success); }
+    .status-failed { color: var(--error); }
+    .status-pending { color: var(--warning); }
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-top: 1.5rem;
+    }
+    .pagination a {
+        padding: 0.5rem 1rem;
+        border: 1px solid var(--slate-300);
+        border-radius: 6px;
+        text-decoration: none;
+        color: var(--slate-700);
+    }
+    .pagination a.active {
+        background: var(--primary-500);
+        color: white;
+        border-color: var(--primary-500);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="transactions-page">
+    <div class="page-header">
+        <h1>All Transactions ({{ total }})</h1>
+        <a href="/admin/transactions/export" class="btn btn-primary">Export CSV</a>
+    </div>
+
+    <div class="card">
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Customer</th>
+                    <th>Description</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in transactions %}
+                <tr>
+                    <td>{{ item.transaction.created_at.strftime('%b %d, %Y %H:%M') }}</td>
+                    <td>
+                        <a href="/admin/customers/{{ item.user.id }}" style="color: var(--primary-600); text-decoration: none;">
+                            {{ item.user.email }}
+                        </a>
+                    </td>
+                    <td>{{ item.transaction.description or 'Subscription Payment' }}</td>
+                    <td>${{ "%.2f"|format(item.transaction.amount) }} {{ item.transaction.currency }}</td>
+                    <td class="status-{{ item.transaction.status.value }}">
+                        {{ item.transaction.status.value|capitalize }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% if total_pages > 1 %}
+        <div class="pagination">
+            {% for p in range(1, total_pages + 1) %}
+            <a href="?page={{ p }}" class="{% if p == page %}active{% endif %}">{{ p }}</a>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

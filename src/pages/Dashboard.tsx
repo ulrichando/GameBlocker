@@ -68,7 +68,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
         <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Shield className="h-8 w-8 text-blue-600" />
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white">GameBlocker</h1>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white">ParentShield</h1>
           </div>
           <Button variant="ghost" size="sm" onClick={logout} className="text-gray-700 dark:text-gray-200">
             <LogOut className="h-4 w-4 mr-2" />

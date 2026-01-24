@@ -1,4 +1,4 @@
-//! GameBlocker daemon binary entry point.
+//! ParentShield daemon binary entry point.
 //!
 //! This binary runs as a systemd service with root privileges to:
 //! - Continuously monitor and terminate blocked processes
@@ -6,7 +6,7 @@
 //! - Apply firewall rules for DoH blocking
 //! - Communicate with the GUI via Unix domain socket
 
-use gameblocker_lib::daemon::runner;
+use parentshield_lib::daemon::runner;
 use std::process::ExitCode;
 
 fn main() -> ExitCode {
@@ -14,12 +14,12 @@ fn main() -> ExitCode {
     tracing_subscriber::fmt()
         .with_env_filter(
             tracing_subscriber::EnvFilter::from_default_env()
-                .add_directive("gameblocker=info".parse().unwrap()),
+                .add_directive("parentshield=info".parse().unwrap()),
         )
         .with_target(false)
         .init();
 
-    tracing::info!("GameBlocker daemon starting...");
+    tracing::info!("ParentShield daemon starting...");
 
     // Check if running as root
     #[cfg(unix)]

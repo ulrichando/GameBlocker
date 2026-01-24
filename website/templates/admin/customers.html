@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block title %}Customers - Admin - ParentShield{% endblock %}
+
+{% block nav_items %}
+<a href="/admin/dashboard">Dashboard</a>
+<a href="/admin/customers">Customers</a>
+<a href="/admin/transactions">Transactions</a>
+<a href="#" onclick="logout()">Logout</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .customers-page {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+    .page-header h1 {
+        color: var(--slate-900);
+        font-size: 1.75rem;
+    }
+    .search-box {
+        display: flex;
+        gap: 1rem;
+    }
+    .search-box input {
+        padding: 0.5rem 1rem;
+        border: 1px solid var(--slate-300);
+        border-radius: 8px;
+        width: 300px;
+    }
+    .card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: var(--shadow-md);
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    th, td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid var(--slate-100);
+    }
+    th {
+        color: var(--slate-500);
+        font-weight: 500;
+        font-size: 0.875rem;
+    }
+    .status-active {
+        color: var(--success);
+    }
+    .status-inactive {
+        color: var(--error);
+    }
+    .btn-sm {
+        padding: 0.25rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.875rem;
+        text-decoration: none;
+        cursor: pointer;
+        border: none;
+    }
+    .btn-view {
+        background: var(--slate-100);
+        color: var(--slate-700);
+    }
+    .btn-suspend {
+        background: #fef2f2;
+        color: #dc2626;
+    }
+    .btn-activate {
+        background: #f0fdf4;
+        color: #16a34a;
+    }
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-top: 1.5rem;
+    }
+    .pagination a {
+        padding: 0.5rem 1rem;
+        border: 1px solid var(--slate-300);
+        border-radius: 6px;
+        text-decoration: none;
+        color: var(--slate-700);
+    }
+    .pagination a.active {
+        background: var(--primary-500);
+        color: white;
+        border-color: var(--primary-500);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="customers-page">
+    <div class="page-header">
+        <h1>Customers ({{ total }})</h1>
+        <form class="search-box" method="get">
+            <input type="text" name="search" placeholder="Search by email or name..." value="{{ search }}">
+            <button type="submit" class="btn-sm btn-view">Search</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <table>
+            <thead>
+                <tr>
+                    <th>Customer</th>
+                    <th>Status</th>
+                    <th>Subscription</th>
+                    <th>Total Spent</th>
+                    <th>Joined</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in customers %}
+                <tr>
+                    <td>
+                        <div style="font-weight: 500;">{{ item.user.first_name or '' }} {{ item.user.last_name or '' }}</div>
+                        <div style="color: var(--slate-500); font-size: 0.875rem;">{{ item.user.email }}</div>
+                    </td>
+                    <td class="{% if item.user.is_active %}status-active{% else %}status-inactive{% endif %}">
+                        {{ 'Active' if item.user.is_active else 'Suspended' }}
+                    </td>
+                    <td>
+                        {% if item.subscription %}
+                            <span class="{% if item.subscription.status.value == 'active' %}status-active{% else %}status-inactive{% endif %}">
+                                {{ item.subscription.status.value|capitalize }}
+                            </span>
+                        {% else %}
+                            <span style="color: var(--slate-400);">None</span>
+                        {% endif %}
+                    </td>
+                    <td>${{ "%.2f"|format(item.total_spent) }}</td>
+                    <td>{{ item.user.created_at.strftime('%b %d, %Y') }}</td>
+                    <td>
+                        <a href="/admin/customers/{{ item.user.id }}" class="btn-sm btn-view">View</a>
+                        {% if item.user.is_active %}
+                        <button onclick="suspendUser('{{ item.user.id }}')" class="btn-sm btn-suspend">Suspend</button>
+                        {% else %}
+                        <button onclick="activateUser('{{ item.user.id }}')" class="btn-sm btn-activate">Activate</button>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% if total_pages > 1 %}
+        <div class="pagination">
+            {% for p in range(1, total_pages + 1) %}
+            <a href="?page={{ p }}&search={{ search }}" class="{% if p == page %}active{% endif %}">{{ p }}</a>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const token = localStorage.getItem('access_token');
+
+    async function suspendUser(userId) {
+        if (!confirm('Suspend this user?')) return;
+        await fetch(`/admin/customers/${userId}/suspend`, {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        location.reload();
+    }
+
+    async function activateUser(userId) {
+        await fetch(`/admin/customers/${userId}/activate`, {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        location.reload();
+    }
+</script>
+{% endblock %}

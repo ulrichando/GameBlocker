@@ -82,11 +82,11 @@ export const useBlockingStore = create<BlockingStore>((set) => ({
 
   setGameBlocking: async (enabled: boolean) => {
     try {
-      console.log("[GameBlocker] setGameBlocking called with:", enabled);
+      console.log("[ParentShield] setGameBlocking called with:", enabled);
       set({ isLoading: true, error: null });
-      console.log("[GameBlocker] Invoking set_game_blocking command...");
+      console.log("[ParentShield] Invoking set_game_blocking command...");
       const result = await invoke<boolean>("set_game_blocking", { enabled });
-      console.log("[GameBlocker] Command result:", result);
+      console.log("[ParentShield] Command result:", result);
       // Refresh currentlyBlocking status after toggle
       const status = await invoke<BlockingStatus>("get_blocking_status");
       set({
@@ -94,9 +94,9 @@ export const useBlockingStore = create<BlockingStore>((set) => ({
         currentlyBlocking: status.currentlyBlocking,
         isLoading: false
       });
-      console.log("[GameBlocker] State updated to:", enabled);
+      console.log("[ParentShield] State updated to:", enabled);
     } catch (error) {
-      console.error("[GameBlocker] Error in setGameBlocking:", error);
+      console.error("[ParentShield] Error in setGameBlocking:", error);
       set({ error: String(error), isLoading: false });
     }
   },

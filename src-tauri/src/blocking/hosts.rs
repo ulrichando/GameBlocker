@@ -8,8 +8,8 @@ use std::process::Command;
 use tracing::{info, error};
 
 const HOSTS_PATH: &str = "/etc/hosts";
-const MARKER_START: &str = "# GameBlocker START - DO NOT EDIT THIS SECTION";
-const MARKER_END: &str = "# GameBlocker END";
+const MARKER_START: &str = "# ParentShield START - DO NOT EDIT THIS SECTION";
+const MARKER_END: &str = "# ParentShield END";
 
 /// Block domains by adding them to /etc/hosts
 pub fn block_domains(domains: &HashSet<String>) -> io::Result<()> {
@@ -23,10 +23,10 @@ pub fn block_domains(domains: &HashSet<String>) -> io::Result<()> {
     // Read current hosts file
     let content = fs::read_to_string(HOSTS_PATH)?;
 
-    // Remove any existing GameBlocker section
-    let cleaned = remove_gameblocker_section(&content);
+    // Remove any existing ParentShield section
+    let cleaned = remove_parentshield_section(&content);
 
-    // Build new GameBlocker section
+    // Build new ParentShield section
     let mut new_section = String::new();
     new_section.push_str(&format!("\n{}\n", MARKER_START));
 
@@ -49,17 +49,17 @@ pub fn block_domains(domains: &HashSet<String>) -> io::Result<()> {
     Ok(())
 }
 
-/// Unblock all domains by removing GameBlocker section from /etc/hosts
+/// Unblock all domains by removing ParentShield section from /etc/hosts
 pub fn unblock_all_domains() -> io::Result<()> {
     let content = fs::read_to_string(HOSTS_PATH)?;
-    let cleaned = remove_gameblocker_section(&content);
+    let cleaned = remove_parentshield_section(&content);
     write_hosts_file(&cleaned)?;
     flush_dns_cache();
     Ok(())
 }
 
-/// Remove the GameBlocker section from hosts content
-fn remove_gameblocker_section(content: &str) -> String {
+/// Remove the ParentShield section from hosts content
+fn remove_parentshield_section(content: &str) -> String {
     let mut result = String::new();
     let mut in_section = false;
 
@@ -181,7 +181,7 @@ fn write_hosts_file_macos(content: &str) -> io::Result<()> {
     use std::env;
 
     // Write content to a temporary file first
-    let temp_path = env::temp_dir().join("gameblocker_hosts_temp");
+    let temp_path = env::temp_dir().join("parentshield_hosts_temp");
     fs::write(&temp_path, content)?;
 
     // Use osascript to copy with admin privileges
@@ -235,7 +235,7 @@ fn write_hosts_file_windows(content: &str) -> io::Result<()> {
         error!("Failed to write Windows hosts file: {}", e);
         io::Error::new(
             io::ErrorKind::PermissionDenied,
-            "Failed to modify hosts file. Please run GameBlocker as Administrator.",
+            "Failed to modify hosts file. Please run ParentShield as Administrator.",
         )
     })?;
 
@@ -306,7 +306,7 @@ fn flush_dns_cache_windows() {
     info!("Flushed DNS cache via ipconfig /flushdns");
 }
 
-/// Check if GameBlocker section exists in hosts file
+/// Check if ParentShield section exists in hosts file
 pub fn is_blocking_active() -> bool {
     if let Ok(content) = fs::read_to_string(HOSTS_PATH) {
         content.contains(MARKER_START)
@@ -357,10 +357,10 @@ pub fn block_domains_direct(domains: &HashSet<String>) -> io::Result<()> {
     // Read current hosts file
     let content = fs::read_to_string(HOSTS_PATH)?;
 
-    // Remove any existing GameBlocker section
-    let cleaned = remove_gameblocker_section(&content);
+    // Remove any existing ParentShield section
+    let cleaned = remove_parentshield_section(&content);
 
-    // Build new GameBlocker section
+    // Build new ParentShield section
     let mut new_section = String::new();
     new_section.push_str(&format!("\n{}\n", MARKER_START));
 
@@ -388,7 +388,7 @@ pub fn block_domains_direct(domains: &HashSet<String>) -> io::Result<()> {
 /// Unblock all domains by directly writing to /etc/hosts (for daemon running as root)
 pub fn unblock_all_domains_direct() -> io::Result<()> {
     let content = fs::read_to_string(HOSTS_PATH)?;
-    let cleaned = remove_gameblocker_section(&content);
+    let cleaned = remove_parentshield_section(&content);
     fs::write(HOSTS_PATH, cleaned)?;
     flush_dns_cache();
     Ok(())

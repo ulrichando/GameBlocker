@@ -135,7 +135,7 @@ impl ConfigManager {
             .ok_or(ConfigError::NoMachineId)?;
 
         // Use a combination of machine ID and a static secret for key derivation
-        let secret = format!("gameblocker-{}", &machine_id[..8.min(machine_id.len())]);
+        let secret = format!("parentshield-{}", &machine_id[..8.min(machine_id.len())]);
 
         Ok(Self {
             config_path,
@@ -147,7 +147,7 @@ impl ConfigManager {
     /// Get the config directory - uses a fixed path that works for both user and root
     fn get_config_dir() -> Result<PathBuf, ConfigError> {
         // First try the standard user config directory
-        if let Some(project_dirs) = ProjectDirs::from("com", "gameblocker", "GameBlocker") {
+        if let Some(project_dirs) = ProjectDirs::from("com", "parentshield", "ParentShield") {
             let config_dir = project_dirs.config_dir().to_path_buf();
             // If the config already exists here, use it
             if config_dir.join("config.enc").exists() {
@@ -165,12 +165,12 @@ impl ConfigManager {
         // Fallback: check common user config locations (for daemon running as root)
         #[cfg(unix)]
         {
-            // Try to find existing config in /home/*/config/gameblocker/
+            // Try to find existing config in /home/*/config/parentshield/
             if let Ok(entries) = fs::read_dir("/home") {
                 for entry in entries.flatten() {
                     let user_config = entry.path()
                         .join(".config")
-                        .join("gameblocker");
+                        .join("parentshield");
                     if user_config.join("config.enc").exists() {
                         return Ok(user_config);
                     }
@@ -178,8 +178,8 @@ impl ConfigManager {
             }
         }
 
-        // Last resort: use /etc/gameblocker for system-wide config
-        let system_config = PathBuf::from("/etc/gameblocker");
+        // Last resort: use /etc/parentshield for system-wide config
+        let system_config = PathBuf::from("/etc/parentshield");
         Ok(system_config)
     }
 

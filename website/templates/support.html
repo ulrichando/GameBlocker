@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Support - ParentShield</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar scrolled">
+        <div class="container">
+            <a href="/" class="logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+                </div>
+                ParentShield
+            </a>
+            <ul class="nav-links">
+                <li><a href="/#features">Features</a></li>
+                <li><a href="/#pricing">Pricing</a></li>
+                <li><a href="/#download">Download</a></li>
+                <li><a href="/support">Support</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main style="padding-top: 100px;">
+        <section class="section">
+            <div class="container">
+                <div class="section-header">
+                    <h1>How Can We <span class="text-gradient">Help?</span></h1>
+                    <p>Find answers to common questions or get in touch with our support team</p>
+                </div>
+
+                <!-- FAQ Section -->
+                <div style="max-width: 800px; margin: 0 auto;">
+                    <div class="feature-card" style="margin-bottom: 1.5rem;">
+                        <h3>How do I install ParentShield?</h3>
+                        <p>Download the installer for your operating system, run it with administrator privileges, and follow the setup wizard. You'll be asked to create a master password during installation.</p>
+                    </div>
+
+                    <div class="feature-card" style="margin-bottom: 1.5rem;">
+                        <h3>I forgot my master password. What do I do?</h3>
+                        <p>For security reasons, the master password cannot be recovered. You'll need to uninstall and reinstall ParentShield, which will reset all settings. This ensures children cannot bypass the protection.</p>
+                    </div>
+
+                    <div class="feature-card" style="margin-bottom: 1.5rem;">
+                        <h3>How do I cancel my subscription?</h3>
+                        <p>You can cancel anytime from your account settings. Your subscription will remain active until the end of the billing period. Contact support@parentshield.app if you need assistance.</p>
+                    </div>
+
+                    <div class="feature-card" style="margin-bottom: 1.5rem;">
+                        <h3>Does ParentShield work with VPNs?</h3>
+                        <p>ParentShield includes VPN detection and blocking capabilities. Enable "Block VPN Ports" in Settings > Advanced to prevent VPN-based bypasses.</p>
+                    </div>
+
+                    <div class="feature-card" style="margin-bottom: 1.5rem;">
+                        <h3>How many devices can I protect?</h3>
+                        <p>Your subscription covers unlimited devices within your family. Install ParentShield on as many Windows, Mac, and Linux computers as you need.</p>
+                    </div>
+                </div>
+
+                <!-- Contact Form -->
+                <div style="max-width: 600px; margin: 4rem auto 0;">
+                    <h2 style="text-align: center; margin-bottom: 2rem;">Still Need Help?</h2>
+
+                    <form id="contactForm" class="feature-card" style="padding: 2.5rem;">
+                        <div style="margin-bottom: 1.5rem;">
+                            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--slate-700);">Name</label>
+                            <input type="text" name="name" required style="width: 100%; padding: 0.875rem; border: 2px solid var(--slate-200); border-radius: 10px; font-size: 1rem; transition: border-color 0.2s;">
+                        </div>
+
+                        <div style="margin-bottom: 1.5rem;">
+                            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--slate-700);">Email</label>
+                            <input type="email" name="email" required style="width: 100%; padding: 0.875rem; border: 2px solid var(--slate-200); border-radius: 10px; font-size: 1rem; transition: border-color 0.2s;">
+                        </div>
+
+                        <div style="margin-bottom: 1.5rem;">
+                            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--slate-700);">Message</label>
+                            <textarea name="message" rows="5" required style="width: 100%; padding: 0.875rem; border: 2px solid var(--slate-200); border-radius: 10px; font-size: 1rem; resize: vertical; font-family: inherit;"></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">
+                            Send Message
+                        </button>
+                    </form>
+
+                    <p style="text-align: center; margin-top: 2rem; color: var(--slate-500);">
+                        Or email us directly at <a href="mailto:support@parentshield.app" style="color: var(--primary-600);">support@parentshield.app</a>
+                    </p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom" style="border-top: none; padding-top: 0;">
+                <p>&copy; 2026 ParentShield. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/static/js/main.js"></script>
+</body>
+</html>

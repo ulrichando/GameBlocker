@@ -1,0 +1,145 @@
+================================================================================
+                         GAMEBLOCKER - USER GUIDE
+================================================================================
+
+GameBlocker is a cross-platform parental control application that helps manage
+access to games and AI services on your computer.
+
+--------------------------------------------------------------------------------
+                              INSTALLATION
+--------------------------------------------------------------------------------
+
+WINDOWS:
+  1. Navigate to the 'windows' folder
+  2. Run the installer (.msi or .exe file)
+  3. Follow the installation wizard
+  4. Launch GameBlocker from the Start Menu or Desktop shortcut
+
+MACOS:
+  1. Navigate to the 'macos' folder
+  2. Open the .dmg file
+  3. Drag GameBlocker to your Applications folder
+  4. Launch from Applications (you may need to allow it in Security settings)
+
+LINUX:
+  1. Navigate to the 'linux' folder
+  2. For .deb (Debian/Ubuntu): sudo dpkg -i gameblocker_*.deb
+  3. For .rpm (Fedora/RHEL): sudo rpm -i gameblocker_*.rpm
+  4. For AppImage: chmod +x GameBlocker_*.AppImage && ./GameBlocker_*.AppImage
+  5. Launch from your application menu or run 'gameblocker' in terminal
+
+--------------------------------------------------------------------------------
+                              FIRST-TIME SETUP
+--------------------------------------------------------------------------------
+
+1. On first launch, you will be prompted to create a master password
+2. This password protects the application settings from being changed
+3. IMPORTANT: Remember this password! It cannot be recovered if forgotten
+
+--------------------------------------------------------------------------------
+                                FEATURES
+--------------------------------------------------------------------------------
+
+PROCESS BLOCKING:
+  - Blocks gaming applications (Steam, Epic Games, Roblox, Minecraft, etc.)
+  - Blocks AI services (ChatGPT, Claude, etc.)
+  - Add custom applications to the blocklist
+  - Whitelist specific applications you want to allow
+
+DOMAIN/WEBSITE BLOCKING:
+  - Blocks access to gaming and AI websites
+  - Uses DNS filtering to prevent access
+  - Modifies hosts file for additional protection
+  - Add custom domains to block or allow
+
+SCHEDULING:
+  - Set specific times when blocking is active
+  - Create different schedules for weekdays and weekends
+  - Define allowed time windows for gaming/AI access
+
+--------------------------------------------------------------------------------
+                              HOW TO USE
+--------------------------------------------------------------------------------
+
+1. ENABLE/DISABLE BLOCKING:
+   - Use the main toggle switch to turn blocking on or off
+   - Password is required to disable blocking
+
+2. MANAGE BLOCKLISTS:
+   - Go to Settings > Blocklists
+   - Add or remove applications and domains
+   - Toggle between gaming and AI blocking modes
+
+3. SET UP SCHEDULES:
+   - Go to Settings > Schedule
+   - Create time-based rules for when blocking is active
+   - Set different rules for different days
+
+4. VIEW ACTIVITY:
+   - Check the dashboard for blocked attempts
+   - Review logs of blocked applications and websites
+
+--------------------------------------------------------------------------------
+                           RUNNING AS A SERVICE
+--------------------------------------------------------------------------------
+
+For maximum protection, GameBlocker can run as a background service that starts
+automatically with your computer:
+
+WINDOWS:
+  - The installer sets up the service automatically
+  - Manage via Windows Services (services.msc)
+
+MACOS:
+  - The app installs a LaunchDaemon
+  - Manage via System Preferences > Login Items
+
+LINUX:
+  - Enable the systemd service: sudo systemctl enable gameblocker-daemon
+  - Start the service: sudo systemctl start gameblocker-daemon
+
+--------------------------------------------------------------------------------
+                             TROUBLESHOOTING
+--------------------------------------------------------------------------------
+
+Q: I forgot my master password
+A: You will need to uninstall and reinstall the application. All settings
+   will be reset.
+
+Q: Blocking isn't working
+A: Ensure the daemon/service is running. On Linux, check with:
+   systemctl status gameblocker-daemon
+
+Q: A legitimate app is being blocked
+A: Add it to the whitelist in Settings > Blocklists > Allowed Applications
+
+Q: I can't access certain websites even when blocking is off
+A: The hosts file may need to be restored. Check Settings > Advanced.
+
+--------------------------------------------------------------------------------
+                               UNINSTALLATION
+--------------------------------------------------------------------------------
+
+WINDOWS:
+  - Use "Add or Remove Programs" in Windows Settings
+
+MACOS:
+  - Drag GameBlocker from Applications to Trash
+  - Run the uninstaller script in the macos folder if hosts file needs cleanup
+
+LINUX:
+  - Debian/Ubuntu: sudo apt remove gameblocker
+  - Fedora/RHEL: sudo dnf remove gameblocker
+  - AppImage: Simply delete the AppImage file
+
+--------------------------------------------------------------------------------
+                                SUPPORT
+--------------------------------------------------------------------------------
+
+For issues, feature requests, or contributions:
+  - GitHub: https://github.com/your-repo/gameblocker
+  - Email: support@gameblocker.app
+
+================================================================================
+                    Thank you for using GameBlocker!
+================================================================================

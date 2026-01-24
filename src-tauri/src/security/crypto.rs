@@ -87,7 +87,7 @@ pub fn derive_key(machine_id: &str, secret: &str) -> Zeroizing<[u8; 32]> {
     let mut hasher = Sha256::new();
     hasher.update(machine_id.as_bytes());
     hasher.update(secret.as_bytes());
-    hasher.update(b"gameblocker-config-key-v1");
+    hasher.update(b"parentshield-config-key-v1");
 
     let result = hasher.finalize();
     let mut key = Zeroizing::new([0u8; 32]);

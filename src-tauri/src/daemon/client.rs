@@ -1,18 +1,41 @@
-//! Client for communicating with the GameBlocker daemon from the GUI.
+//! Client for communicating with the ParentShield daemon from the GUI.
 
-use crate::daemon::ipc::{
-    read_message, write_message, DaemonRequest, DaemonResponse, SOCKET_PATH,
-};
+use crate::daemon::ipc::{read_message, write_message, DaemonRequest, DaemonResponse};
 use std::io::{BufReader, BufWriter};
+
+#[cfg(unix)]
+use crate::daemon::ipc::SOCKET_PATH;
+#[cfg(unix)]
 use std::os::unix::net::UnixStream;
+#[cfg(unix)]
 use std::time::Duration;
 
+#[cfg(windows)]
+use crate::daemon::ipc::PIPE_NAME;
+#[cfg(windows)]
+use std::fs::OpenOptions;
+
 /// Check if the daemon is running by attempting to connect
+#[cfg(unix)]
 pub fn is_daemon_running() -> bool {
     match UnixStream::connect(SOCKET_PATH) {
         Ok(stream) => {
             // Try to ping
-            if let Ok(response) = send_request_internal(stream, DaemonRequest::Ping) {
+            if let Ok(response) = send_request_internal_unix(stream, DaemonRequest::Ping) {
+                matches!(response, DaemonResponse::Pong)
+            } else {
+                false
+            }
+        }
+        Err(_) => false,
+    }
+}
+
+#[cfg(windows)]
+pub fn is_daemon_running() -> bool {
+    match OpenOptions::new().read(true).write(true).open(PIPE_NAME) {
+        Ok(pipe) => {
+            if let Ok(response) = send_request_internal_windows(pipe, DaemonRequest::Ping) {
                 matches!(response, DaemonResponse::Pong)
             } else {
                 false
@@ -23,6 +46,7 @@ pub fn is_daemon_running() -> bool {
 }
 
 /// Send a request to the daemon and get a response
+#[cfg(unix)]
 pub fn send_request(request: DaemonRequest) -> Result<DaemonResponse, DaemonClientError> {
     let stream = UnixStream::connect(SOCKET_PATH).map_err(|e| {
         if e.kind() == std::io::ErrorKind::NotFound
@@ -34,10 +58,28 @@ pub fn send_request(request: DaemonRequest) -> Result<DaemonResponse, DaemonClie
         }
     })?;
 
-    send_request_internal(stream, request)
+    send_request_internal_unix(stream, request)
 }
 
-fn send_request_internal(
+#[cfg(windows)]
+pub fn send_request(request: DaemonRequest) -> Result<DaemonResponse, DaemonClientError> {
+    let pipe = OpenOptions::new()
+        .read(true)
+        .write(true)
+        .open(PIPE_NAME)
+        .map_err(|e| {
+            if e.kind() == std::io::ErrorKind::NotFound {
+                DaemonClientError::DaemonNotRunning
+            } else {
+                DaemonClientError::ConnectionFailed(e.to_string())
+            }
+        })?;
+
+    send_request_internal_windows(pipe, request)
+}
+
+#[cfg(unix)]
+fn send_request_internal_unix(
     stream: UnixStream,
     request: DaemonRequest,
 ) -> Result<DaemonResponse, DaemonClientError> {
@@ -52,6 +94,29 @@ fn send_request_internal(
         DaemonClientError::ConnectionFailed(e.to_string())
     })?);
     let mut writer = BufWriter::new(stream);
+
+    // Send request
+    write_message(&mut writer, &request).map_err(|e| {
+        DaemonClientError::SendFailed(e.to_string())
+    })?;
+
+    // Read response
+    let response: DaemonResponse = read_message(&mut reader).map_err(|e| {
+        DaemonClientError::ReceiveFailed(e.to_string())
+    })?;
+
+    Ok(response)
+}
+
+#[cfg(windows)]
+fn send_request_internal_windows(
+    pipe: std::fs::File,
+    request: DaemonRequest,
+) -> Result<DaemonResponse, DaemonClientError> {
+    let mut reader = BufReader::new(pipe.try_clone().map_err(|e| {
+        DaemonClientError::ConnectionFailed(e.to_string())
+    })?);
+    let mut writer = BufWriter::new(pipe);
 
     // Send request
     write_message(&mut writer, &request).map_err(|e| {

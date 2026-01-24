@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ParentShield - Professional parental control software. Block games, websites, and manage screen time on Windows, Mac, and Linux.">
+    <meta name="keywords" content="parental control, screen time, game blocker, website filter, family safety">
+    <meta property="og:title" content="ParentShield - Protect Your Family's Digital Life">
+    <meta property="og:description" content="Take control of screen time and block distracting games and websites.">
+    <meta property="og:type" content="website">
+    <title>ParentShield - Protect Your Family's Digital Life</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="/static/css/style.css">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/static/images/favicon.svg">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="container">
+            <a href="/" class="logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+                </div>
+                ParentShield
+            </a>
+
+            <ul class="nav-links" id="navLinks">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#pricing">Pricing</a></li>
+                <li><a href="#download">Download</a></li>
+                <li><a href="/support">Support</a></li>
+                <li><a href="/auth/login" class="nav-link-secondary">Log in</a></li>
+                <li><a href="/auth/register" class="nav-cta">Get Started</a></li>
+            </ul>
+
+            <button class="mobile-toggle" id="mobileToggle" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" id="hero">
+        <div class="hero-bg">
+            <div class="hero-orb hero-orb-1"></div>
+            <div class="hero-orb hero-orb-2"></div>
+            <div class="hero-orb hero-orb-3"></div>
+        </div>
+
+        <!-- Floating Elements -->
+        <div class="hero-float float-1">
+            <div class="float-card">
+                <div class="float-icon" style="background: linear-gradient(135deg, #10B981, #059669);">
+                    <svg viewBox="0 0 24 24" fill="white"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                </div>
+                <span>2.4M hours saved</span>
+            </div>
+        </div>
+        <div class="hero-float float-2">
+            <div class="float-card">
+                <div class="float-icon" style="background: linear-gradient(135deg, #6366f1, #8B5CF6);">
+                    <svg viewBox="0 0 24 24" fill="white"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+                </div>
+                <span>Enterprise security</span>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <span class="hero-badge-icon">
+                        <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+                    </span>
+                    <span class="hero-badge-dot"></span>
+                    Trusted by 10,000+ Families Worldwide
+                </div>
+
+                <h1>Protect Your Family's <span class="text-gradient">Digital Life</span></h1>
+
+                <p>Take control of screen time and block distracting games and websites. Keep your children focused, safe, and developing healthy digital habits.</p>
+
+                <div class="hero-buttons">
+                    <a href="#pricing" class="btn btn-primary btn-lg">
+                        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                        Start Free Trial
+                    </a>
+                    <a href="#features" class="btn btn-secondary btn-lg">
+                        Learn More
+                    </a>
+                </div>
+
+                <!-- Social Proof -->
+                <div class="social-proof">
+                    <div class="social-avatars">
+                        <img src="https://i.pravatar.cc/48?img=1" alt="User">
+                        <img src="https://i.pravatar.cc/48?img=2" alt="User">
+                        <img src="https://i.pravatar.cc/48?img=3" alt="User">
+                        <img src="https://i.pravatar.cc/48?img=4" alt="User">
+                        <img src="https://i.pravatar.cc/48?img=5" alt="User">
+                    </div>
+                    <div class="social-text">
+                        <div class="social-stars">
+                            <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                            <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                            <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                            <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                            <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                        </div>
+                        <span><strong>4.9/5</strong> from 2,000+ reviews</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hero Preview -->
+            <div class="hero-preview">
+                <div class="preview-window">
+                    <div class="preview-header">
+                        <div class="preview-dots">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                        <span class="preview-title">ParentShield Dashboard</span>
+                    </div>
+                    <div class="preview-content">
+                        <div class="preview-stat">
+                            <div class="preview-stat-icon" style="background: linear-gradient(135deg, #10B981, #059669);">
+                                <svg viewBox="0 0 24 24" fill="white" width="20" height="20"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.75rem; color: var(--slate-500);">Screen Time Today</div>
+                                <div style="font-size: 1.25rem; font-weight: 700;">2h 34m</div>
+                            </div>
+                        </div>
+                        <div class="preview-stat">
+                            <div class="preview-stat-icon" style="background: linear-gradient(135deg, #EF4444, #DC2626);">
+                                <svg viewBox="0 0 24 24" fill="white" width="20" height="20"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.75rem; color: var(--slate-500);">Blocked Today</div>
+                                <div style="font-size: 1.25rem; font-weight: 700;">47 apps</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="scroll-indicator">
+            <svg viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
+        </div>
+    </section>
+
+    <!-- Features Section - Bento Grid -->
+    <section class="features section" id="features">
+        <div class="container">
+            <div class="section-header">
+                <h2>Everything You Need to <span class="text-gradient">Protect Your Family</span></h2>
+                <p>Powerful, easy-to-use tools designed to help your family develop healthy digital habits</p>
+            </div>
+
+            <div class="bento-grid">
+                <!-- Large Featured Item -->
+                <div class="bento-item bento-large fade-in">
+                    <div class="bento-icon">
+                        <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+                    </div>
+                    <h3>Smart Time Limits</h3>
+                    <p>Set daily screen time limits and schedules that adapt to your family's unique routine. Our intelligent system learns patterns and provides automated enforcement that ensures consistency without constant oversight.</p>
+                    <div class="bento-visual">
+                        <div class="time-chart">
+                            <div class="time-bar" style="height: 60%; background: linear-gradient(to top, #10B981, #34D399);"></div>
+                            <div class="time-bar" style="height: 80%; background: linear-gradient(to top, #10B981, #34D399);"></div>
+                            <div class="time-bar" style="height: 45%; background: linear-gradient(to top, #10B981, #34D399);"></div>
+                            <div class="time-bar" style="height: 90%; background: linear-gradient(to top, #EF4444, #F87171);"></div>
+                            <div class="time-bar" style="height: 55%; background: linear-gradient(to top, #10B981, #34D399);"></div>
+                            <div class="time-bar" style="height: 70%; background: linear-gradient(to top, #10B981, #34D399);"></div>
+                            <div class="time-bar" style="height: 40%; background: linear-gradient(to top, #10B981, #34D399);"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Regular Items -->
+                <div class="bento-item fade-in stagger-1">
+                    <div class="bento-icon">
+                        <svg viewBox="0 0 24 24"><path d="M21.58 16.09l-1.09-7.66A3.996 3.996 0 0016.53 5H7.47C5.48 5 3.79 6.46 3.51 8.43l-1.09 7.66C2.2 17.63 3.39 19 4.94 19h0c.68 0 1.32-.27 1.8-.75L9 16h6l2.25 2.25c.48.48 1.13.75 1.8.75h0c1.56 0 2.75-1.37 2.53-2.91zM11 11H9v2H8v-2H6v-1h2V8h1v2h2v1zm4-1c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm2 3c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z"/></svg>
+                    </div>
+                    <h3>Game Blocking</h3>
+                    <p>Block Steam, Epic, and all gaming platforms during study hours.</p>
+                </div>
+
+                <div class="bento-item fade-in stagger-2">
+                    <div class="bento-icon">
+                        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                    </div>
+                    <h3>Website Filtering</h3>
+                    <p>AI-powered content filtering keeps browsing safe and appropriate.</p>
+                </div>
+
+                <!-- Wide Item -->
+                <div class="bento-item bento-wide fade-in stagger-3">
+                    <div class="bento-icon">
+                        <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+                    </div>
+                    <h3>Enterprise-Grade Tamper Protection</h3>
+                    <p>Protected by military-grade encryption and a secure master password. Children cannot disable, uninstall, or bypass the software without your explicit permission. Even tech-savvy teens can't work around it.</p>
+                </div>
+
+                <div class="bento-item fade-in stagger-4">
+                    <div class="bento-icon">
+                        <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/></svg>
+                    </div>
+                    <h3>Cross-Platform</h3>
+                    <p>Windows, macOS, and Linux. One subscription for all devices.</p>
+                </div>
+
+                <div class="bento-item fade-in stagger-4">
+                    <div class="bento-icon">
+                        <svg viewBox="0 0 24 24"><path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z"/></svg>
+                    </div>
+                    <h3>Activity Reports</h3>
+                    <p>Detailed insights into usage patterns and digital habits.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats">
+        <div class="container">
+            <div class="stats-grid">
+                <div class="stat-item fade-in">
+                    <h3>10,000+</h3>
+                    <p>Families Protected</p>
+                </div>
+                <div class="stat-item fade-in stagger-1">
+                    <h3>50M+</h3>
+                    <p>Distractions Blocked</p>
+                </div>
+                <div class="stat-item fade-in stagger-2">
+                    <h3>99.9%</h3>
+                    <p>Uptime Reliability</p>
+                </div>
+                <div class="stat-item fade-in stagger-3">
+                    <h3>24/7</h3>
+                    <p>Customer Support</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="testimonials section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Loved by <span class="text-gradient">Parents Everywhere</span></h2>
+                <p>See what families are saying about ParentShield</p>
+            </div>
+
+            <div class="testimonials-grid">
+                <div class="testimonial-card fade-in">
+                    <div class="testimonial-stars">
+                        <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                        <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                        <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                        <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                        <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                    </div>
+                    <p class="testimonial-text">"Finally, software that actually works! My son used to game until 2am. Now he's in bed on time and his grades have improved dramatically."</p>
+                    <div class="testimonial-author">
+                        <img src="https://i.pravatar.cc/48?img=32" alt="Sarah M.">
+                        <div>
+                            <div class="testimonial-name">Sarah M.</div>
+                            <div class="testimonial-role">Mother of 2, California</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="testimonial-card fade-in stagger-1">
+                    <div class="testimonial-stars">
+                        <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                        <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                        <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                        <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                        <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                    </div>
+                    <p class="testimonial-text">"The tamper protection is incredible. My tech-savvy teenager couldn't figure out how to bypass it. Worth every penny for peace of mind."</p>
+                    <div class="testimonial-author">
+                        <img src="https://i.pravatar.cc/48?img=15" alt="Michael T.">
+                        <div>
+                            <div class="testimonial-name">Michael T.</div>
+                            <div class="testimonial-role">Father of 3, Texas</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="testimonial-card fade-in stagger-2">
+                    <div class="testimonial-stars">
+                        <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                        <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                        <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                        <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                        <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                    </div>
+                    <p class="testimonial-text">"Cross-platform support was the deciding factor. We have Windows, Mac, and Linux machines. One subscription covers everything!"</p>
+                    <div class="testimonial-author">
+                        <img src="https://i.pravatar.cc/48?img=26" alt="Jennifer K.">
+                        <div>
+                            <div class="testimonial-name">Jennifer K.</div>
+                            <div class="testimonial-role">Mother of 4, New York</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section class="pricing section" id="pricing">
+        <div class="container">
+            <div class="section-header">
+                <h2>Choose Your <span class="text-gradient">Plan</span></h2>
+                <p>Start free, upgrade anytime. All plans include cross-platform support.</p>
+            </div>
+
+            <div class="pricing-grid">
+                <!-- Free Trial -->
+                <div class="pricing-card fade-in">
+                    <div class="pricing-header">
+                        <h3 class="pricing-name">Free Trial</h3>
+                        <div class="pricing-amount">
+                            <span class="pricing-currency">$</span>
+                            <span class="pricing-value">0</span>
+                            <span class="pricing-period">/7 days</span>
+                        </div>
+                        <p class="pricing-desc">Try all features free</p>
+                    </div>
+
+                    <ul class="pricing-features">
+                        <li>
+                            <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                            All Pro features included
+                        </li>
+                        <li>
+                            <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                            Windows, Mac & Linux
+                        </li>
+                        <li>
+                            <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                            Unlimited blocking
+                        </li>
+                        <li>
+                            <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                            7-day full access
+                        </li>
+                        <li class="disabled">
+                            <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                            No credit card required
+                        </li>
+                    </ul>
+
+                    <button class="btn btn-secondary btn-lg pricing-btn" data-plan="trial">
+                        Start Free Trial
+                    </button>
+                </div>
+
+                <!-- Basic Plan -->
+                <div class="pricing-card fade-in stagger-1">
+                    <div class="pricing-header">
+                        <h3 class="pricing-name">Basic</h3>
+                        <div class="pricing-amount">
+                            <span class="pricing-currency">$</span>
+                            <span class="pricing-value">4.99</span>
+                            <span class="pricing-period">/mo</span>
+                        </div>
+                        <p class="pricing-desc">Essential website protection</p>
+                    </div>
+
+                    <ul class="pricing-features">
+                        <li>
+                            <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                            Website blocking only
+                        </li>
+                        <li>
+                            <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                            Up to 30 blocked sites
+                        </li>
+                        <li>
+                            <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                            Windows, Mac & Linux
+                        </li>
+                        <li>
+                            <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                            Basic tamper protection
+                        </li>
+                        <li class="disabled">
+                            <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                            No game blocking
+                        </li>
+                        <li class="disabled">
+                            <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                            No web dashboard
+                        </li>
+                    </ul>
+
+                    <button class="btn btn-secondary btn-lg pricing-btn" data-plan="basic">
+                        Get Basic
+                    </button>
+                </div>
+
+                <!-- Pro Plan -->
+                <div class="pricing-card featured fade-in stagger-2">
+                    <div class="pricing-badge">Most Popular</div>
+                    <div class="pricing-header">
+                        <h3 class="pricing-name">Pro</h3>
+                        <div class="pricing-amount">
+                            <span class="pricing-currency">$</span>
+                            <span class="pricing-value">9.99</span>
+                            <span class="pricing-period">/mo</span>
+                        </div>
+                        <p class="pricing-desc">Complete family protection</p>
+                    </div>
+
+                    <ul class="pricing-features">
+                        <li>
+                            <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                            <strong>Unlimited</strong> website blocks
+                        </li>
+                        <li>
+                            <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                            <strong>Game blocking</strong> (Steam, Epic, etc.)
+                        </li>
+                        <li>
+                            <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                            Windows, Mac & Linux
+                        </li>
+                        <li>
+                            <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                            Advanced tamper protection
+                        </li>
+                        <li>
+                            <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                            <strong>Web dashboard</strong> access
+                        </li>
+                        <li>
+                            <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                            Activity reports & insights
+                        </li>
+                        <li>
+                            <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                            Customizable schedules
+                        </li>
+                        <li>
+                            <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                            Priority email support
+                        </li>
+                    </ul>
+
+                    <button class="btn btn-white btn-lg pricing-btn" data-plan="pro">
+                        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                        Get Pro
+                    </button>
+
+                    <p class="pricing-note">Cancel anytime. 30-day money back guarantee.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Download Section -->
+    <section class="downloads section" id="download">
+        <div class="container">
+            <div class="section-header">
+                <h2>Download <span class="text-gradient">ParentShield</span></h2>
+                <p>Available for all major desktop platforms. Get started in minutes.</p>
+            </div>
+
+            <div class="download-grid">
+                <!-- Windows -->
+                <div class="download-card fade-in">
+                    <div class="download-icon">
+                        <svg viewBox="0 0 24 24"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/></svg>
+                    </div>
+                    <h3>Windows</h3>
+                    <p class="requirements">{{ downloads.windows.requirements }}</p>
+                    <div class="download-buttons">
+                        <a href="/download/windows" class="download-btn">
+                            <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                            Download .exe
+                        </a>
+                    </div>
+                </div>
+
+                <!-- macOS -->
+                <div class="download-card fade-in stagger-1">
+                    <div class="download-icon">
+                        <svg viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+                    </div>
+                    <h3>macOS</h3>
+                    <p class="requirements">{{ downloads.macos.requirements }}</p>
+                    <div class="download-buttons">
+                        <a href="/download/macos" class="download-btn">
+                            <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                            Download .dmg
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Linux -->
+                <div class="download-card fade-in stagger-2">
+                    <div class="download-icon">
+                        <svg viewBox="0 0 24 24"><path d="M12.5 2c-.3 0-.5.2-.5.5v.3c0 .1 0 .3.1.4l.4 1.1c-.8.5-1.5 1.2-2 2l-1.1-.4c-.1-.1-.3-.1-.4-.1h-.3c-.3 0-.5.2-.5.5v.1c0 .1 0 .3.1.4l.7 1.5c-.3.6-.5 1.3-.5 2s.2 1.4.5 2l-.7 1.5c-.1.1-.1.3-.1.4v.1c0 .3.2.5.5.5h.3c.1 0 .3 0 .4-.1l1.1-.4c.5.8 1.2 1.5 2 2l-.4 1.1c-.1.1-.1.3-.1.4v.3c0 .3.2.5.5.5h.1c.1 0 .3 0 .4-.1l1.5-.7c.6.3 1.3.5 2 .5s1.4-.2 2-.5l1.5.7c.1.1.3.1.4.1h.1c.3 0 .5-.2.5-.5v-.3c0-.1 0-.3-.1-.4l-.4-1.1c.8-.5 1.5-1.2 2-2l1.1.4c.1.1.3.1.4.1h.3c.3 0 .5-.2.5-.5v-.1c0-.1 0-.3-.1-.4l-.7-1.5c.3-.6.5-1.3.5-2s-.2-1.4-.5-2l.7-1.5c.1-.1.1-.3.1-.4v-.1c0-.3-.2-.5-.5-.5h-.3c-.1 0-.3 0-.4.1l-1.1.4c-.5-.8-1.2-1.5-2-2l.4-1.1c.1-.1.1-.3.1-.4v-.3c0-.3-.2-.5-.5-.5h-.1c-.1 0-.3 0-.4.1l-1.5.7c-.6-.3-1.3-.5-2-.5s-1.4.2-2 .5l-1.5-.7c-.1-.1-.3-.1-.4-.1h-.1zm1.5 6c1.7 0 3 1.3 3 3s-1.3 3-3 3-3-1.3-3-3 1.3-3 3-3z"/></svg>
+                    </div>
+                    <h3>Linux</h3>
+                    <p class="requirements">Ubuntu, Debian, Fedora & more</p>
+                    <div class="download-buttons">
+                        <a href="/download/linux-appimage" class="download-btn">
+                            <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                            Download .AppImage
+                        </a>
+                        <a href="/download/linux-deb" class="download-btn secondary">
+                            <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                            Download .deb
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-content">
+                <h2>Ready to Take Control of <span class="text-gradient">Screen Time</span>?</h2>
+                <p>Join 10,000+ families who trust ParentShield to protect their children's digital wellbeing.</p>
+                <div class="cta-buttons">
+                    <a href="/auth/register" class="btn btn-white btn-lg">
+                        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                        Start Free Trial
+                    </a>
+                    <a href="#features" class="btn btn-outline btn-lg">Learn More</a>
+                </div>
+                <p class="cta-note">No credit card required. 7-day free trial.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a href="/" class="logo">
+                        <div class="logo-icon">
+                            <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+                        </div>
+                        ParentShield
+                    </a>
+                    <p>Helping families build healthy digital habits since 2024. Trusted by thousands of parents worldwide.</p>
+                </div>
+
+                <div class="footer-column">
+                    <h4>Product</h4>
+                    <ul>
+                        <li><a href="#features">Features</a></li>
+                        <li><a href="#pricing">Pricing</a></li>
+                        <li><a href="#download">Download</a></li>
+                        <li><a href="/changelog">Changelog</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-column">
+                    <h4>Support</h4>
+                    <ul>
+                        <li><a href="/support">Help Center</a></li>
+                        <li><a href="/docs">Documentation</a></li>
+                        <li><a href="/contact">Contact Us</a></li>
+                        <li><a href="/status">System Status</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-column">
+                    <h4>Legal</h4>
+                    <ul>
+                        <li><a href="/privacy">Privacy Policy</a></li>
+                        <li><a href="/terms">Terms of Service</a></li>
+                        <li><a href="/refund">Refund Policy</a></li>
+                        <li><a href="/gdpr">GDPR</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2026 ParentShield. All rights reserved.</p>
+
+                <div class="social-links">
+                    <a href="#" aria-label="Twitter">
+                        <svg viewBox="0 0 24 24"><path d="M22.46 6c-.77.35-1.6.58-2.46.69.88-.53 1.56-1.37 1.88-2.38-.83.5-1.75.85-2.72 1.05C18.37 4.5 17.26 4 16 4c-2.35 0-4.27 1.92-4.27 4.29 0 .34.04.67.11.98C8.28 9.09 5.11 7.38 3 4.79c-.37.63-.58 1.37-.58 2.15 0 1.49.75 2.81 1.91 3.56-.71 0-1.37-.2-1.95-.5v.03c0 2.08 1.48 3.82 3.44 4.21a4.22 4.22 0 0 1-1.93.07 4.28 4.28 0 0 0 4 2.98 8.521 8.521 0 0 1-5.33 1.84c-.34 0-.68-.02-1.02-.06C3.44 20.29 5.7 21 8.12 21 16 21 20.33 14.46 20.33 8.79c0-.19 0-.37-.01-.56.84-.6 1.56-1.36 2.14-2.23z"/></svg>
+                    </a>
+                    <a href="#" aria-label="GitHub">
+                        <svg viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg>
+                    </a>
+                    <a href="#" aria-label="LinkedIn">
+                        <svg viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="/static/js/main.js"></script>
+    {% if stripe_key %}
+    <script src="https://js.stripe.com/v3/"></script>
+    <script>
+        const stripe = Stripe('{{ stripe_key }}');
+
+        // Handle all pricing buttons
+        document.querySelectorAll('.pricing-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const plan = btn.dataset.plan;
+
+                // Free trial redirects to registration
+                if (plan === 'trial') {
+                    window.location.href = '/auth/register?plan=trial';
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/create-checkout-session', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ plan: plan })
+                    });
+
+                    const data = await response.json();
+                    if (data.url) {
+                        window.location.href = data.url;
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+            });
+        });
+    </script>
+    {% endif %}
+</body>
+</html>

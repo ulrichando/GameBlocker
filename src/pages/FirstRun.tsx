@@ -90,7 +90,7 @@ export function FirstRun() {
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900">
               <Shield className="h-8 w-8 text-blue-600 dark:text-blue-400" />
             </div>
-            <CardTitle className="text-2xl">Welcome to GameBlocker</CardTitle>
+            <CardTitle className="text-2xl">Welcome to ParentShield</CardTitle>
             <CardDescription>
               Set up your parent password to protect the settings
             </CardDescription>

@@ -3,17 +3,27 @@
 use crate::blocking::{self, process};
 use crate::config::ConfigManager;
 use crate::daemon::ipc::{
-    read_message, write_message, BlockedProcessInfo, DaemonRequest, DaemonResponse, SOCKET_PATH,
+    read_message, write_message, BlockedProcessInfo, DaemonRequest, DaemonResponse,
 };
 use std::collections::HashSet;
 use std::fs;
 use std::io::{BufReader, BufWriter};
-use std::os::unix::net::{UnixListener, UnixStream};
-use std::path::Path;
 use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tracing::{error, info, warn};
+
+#[cfg(unix)]
+use crate::daemon::ipc::SOCKET_PATH;
+#[cfg(unix)]
+use std::os::unix::net::{UnixListener, UnixStream};
+#[cfg(unix)]
+use std::path::Path;
+
+#[cfg(windows)]
+use crate::daemon::ipc::PIPE_NAME;
+#[cfg(windows)]
+use std::io::ErrorKind;
 
 /// Daemon state shared across threads
 pub struct DaemonState {
@@ -32,9 +42,10 @@ impl DaemonState {
     }
 }
 
-/// Run the daemon main loop
+/// Run the daemon main loop (Unix version)
+#[cfg(unix)]
 pub fn run_daemon() -> std::io::Result<()> {
-    info!("Starting GameBlocker daemon...");
+    info!("Starting ParentShield daemon...");
 
     let state = Arc::new(DaemonState::new());
 
@@ -51,7 +62,6 @@ pub fn run_daemon() -> std::io::Result<()> {
     let listener = UnixListener::bind(SOCKET_PATH)?;
 
     // Set socket permissions (world readable/writable so GUI can connect)
-    #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
         fs::set_permissions(SOCKET_PATH, fs::Permissions::from_mode(0o666))?;
@@ -74,7 +84,7 @@ pub fn run_daemon() -> std::io::Result<()> {
             Ok((stream, _)) => {
                 let state_clone = Arc::clone(&state);
                 std::thread::spawn(move || {
-                    if let Err(e) = handle_client(stream, state_clone) {
+                    if let Err(e) = handle_client_unix(stream, state_clone) {
                         warn!("Client handler error: {}", e);
                     }
                 });
@@ -100,8 +110,89 @@ pub fn run_daemon() -> std::io::Result<()> {
     Ok(())
 }
 
-/// Handle a client connection
-fn handle_client(stream: UnixStream, state: Arc<DaemonState>) -> std::io::Result<()> {
+/// Run the daemon main loop (Windows version using named pipes)
+#[cfg(windows)]
+pub fn run_daemon() -> std::io::Result<()> {
+    use windows::Win32::Foundation::HANDLE;
+    use windows::Win32::Storage::FileSystem::{
+        CreateFileW, FILE_FLAG_OVERLAPPED, OPEN_EXISTING, PIPE_ACCESS_DUPLEX,
+    };
+    use windows::Win32::System::Pipes::{
+        ConnectNamedPipe, CreateNamedPipeW, DisconnectNamedPipe,
+        PIPE_READMODE_MESSAGE, PIPE_TYPE_MESSAGE, PIPE_UNLIMITED_INSTANCES, PIPE_WAIT,
+    };
+    use windows::core::PCWSTR;
+
+    info!("Starting ParentShield daemon...");
+
+    let state = Arc::new(DaemonState::new());
+
+    // Spawn blocking check thread
+    let state_clone = Arc::clone(&state);
+    let blocking_thread = std::thread::spawn(move || {
+        run_blocking_loop(state_clone);
+    });
+
+    info!("Daemon listening on {}", PIPE_NAME);
+
+    // Main loop - create named pipe instances and wait for clients
+    while state.running.load(Ordering::Relaxed) {
+        // Create a named pipe instance
+        let pipe_name: Vec<u16> = PIPE_NAME.encode_utf16().chain(std::iter::once(0)).collect();
+
+        let pipe = unsafe {
+            CreateNamedPipeW(
+                PCWSTR(pipe_name.as_ptr()),
+                PIPE_ACCESS_DUPLEX,
+                PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT,
+                PIPE_UNLIMITED_INSTANCES,
+                4096,
+                4096,
+                0,
+                None,
+            )
+        };
+
+        let pipe = match pipe {
+            Ok(p) => p,
+            Err(e) => {
+                error!("Failed to create named pipe: {}", e);
+                std::thread::sleep(Duration::from_secs(1));
+                continue;
+            }
+        };
+
+        // Wait for a client to connect (with timeout via polling)
+        let connected = unsafe { ConnectNamedPipe(pipe, None) };
+
+        if connected.is_ok() || unsafe { windows::Win32::Foundation::GetLastError() } == windows::Win32::Foundation::ERROR_PIPE_CONNECTED {
+            let state_clone = Arc::clone(&state);
+            std::thread::spawn(move || {
+                // Convert HANDLE to a file for reading/writing
+                use std::os::windows::io::FromRawHandle;
+                let file = unsafe { std::fs::File::from_raw_handle(pipe.0 as *mut std::ffi::c_void) };
+
+                if let Err(e) = handle_client_windows(file, state_clone) {
+                    warn!("Client handler error: {}", e);
+                }
+            });
+        } else {
+            error!("Failed to connect named pipe");
+            std::thread::sleep(Duration::from_millis(100));
+        }
+    }
+
+    info!("Daemon shutting down...");
+
+    // Wait for blocking thread
+    let _ = blocking_thread.join();
+
+    Ok(())
+}
+
+/// Handle a client connection (Unix version)
+#[cfg(unix)]
+fn handle_client_unix(stream: UnixStream, state: Arc<DaemonState>) -> std::io::Result<()> {
     stream.set_read_timeout(Some(Duration::from_secs(30)))?;
     stream.set_write_timeout(Some(Duration::from_secs(10)))?;
 
@@ -113,6 +204,48 @@ fn handle_client(stream: UnixStream, state: Arc<DaemonState>) -> std::io::Result
         let request: DaemonRequest = match read_message(&mut reader) {
             Ok(req) => req,
             Err(ref e) if e.kind() == std::io::ErrorKind::UnexpectedEof => {
+                // Client disconnected
+                break;
+            }
+            Err(e) => {
+                error!("Failed to read request: {}", e);
+                break;
+            }
+        };
+
+        // Process request
+        let response = process_request(request, &state);
+
+        // Send response
+        if let Err(e) = write_message(&mut writer, &response) {
+            error!("Failed to send response: {}", e);
+            break;
+        }
+
+        // Check if we should stop accepting requests on this connection
+        if let DaemonResponse::Ok = response {
+            // Continue processing
+        }
+    }
+
+    Ok(())
+}
+
+/// Handle a client connection (Windows version)
+#[cfg(windows)]
+fn handle_client_windows(pipe: std::fs::File, state: Arc<DaemonState>) -> std::io::Result<()> {
+    let mut reader = BufReader::new(pipe.try_clone()?);
+    let mut writer = BufWriter::new(pipe);
+
+    loop {
+        // Read request
+        let request: DaemonRequest = match read_message(&mut reader) {
+            Ok(req) => req,
+            Err(ref e) if e.kind() == std::io::ErrorKind::UnexpectedEof => {
+                // Client disconnected
+                break;
+            }
+            Err(ref e) if e.kind() == std::io::ErrorKind::BrokenPipe => {
                 // Client disconnected
                 break;
             }
