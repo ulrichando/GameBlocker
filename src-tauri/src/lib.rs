@@ -33,7 +33,7 @@ fn setup_signal_protection() {
 /// Set up process protection on Windows
 #[cfg(windows)]
 fn setup_signal_protection() {
-    use windows::Win32::System::Threading::{SetProcessShutdownParameters, SHUTDOWN_NORETRY};
+    use windows::Win32::System::Shutdown::{SetProcessShutdownParameters, SHUTDOWN_NORETRY};
 
     // Set high priority for shutdown (last to be closed)
     unsafe {
