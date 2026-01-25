@@ -21,8 +21,8 @@ fn main() -> ExitCode {
 
     tracing::info!("ParentShield daemon starting...");
 
-    // Check if running as root
-    #[cfg(unix)]
+    // Check if running as root (Linux only - nix crate not available on macOS)
+    #[cfg(target_os = "linux")]
     {
         if !nix::unistd::geteuid().is_root() {
             tracing::error!("Daemon must run as root. Use 'sudo' or run via systemd.");

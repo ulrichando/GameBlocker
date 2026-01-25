@@ -162,10 +162,12 @@ pub fn run_daemon() -> std::io::Result<()> {
 
         if connected.is_ok() || unsafe { windows::Win32::Foundation::GetLastError() } == windows::Win32::Foundation::ERROR_PIPE_CONNECTED {
             let state_clone = Arc::clone(&state);
+            // Extract raw handle value before moving into thread (raw pointer is not Send)
+            let raw_handle = pipe.0 as usize;
             std::thread::spawn(move || {
-                // Convert HANDLE to a file for reading/writing
+                // Convert raw handle back to a file for reading/writing
                 use std::os::windows::io::FromRawHandle;
-                let file = unsafe { std::fs::File::from_raw_handle(pipe.0 as *mut std::ffi::c_void) };
+                let file = unsafe { std::fs::File::from_raw_handle(raw_handle as *mut std::ffi::c_void) };
 
                 if let Err(e) = handle_client_windows(file, state_clone) {
                     warn!("Client handler error: {}", e);
