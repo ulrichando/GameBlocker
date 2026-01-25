@@ -15,6 +15,7 @@ from app.db.database import engine, Base
 from app.routers import auth_router, customer_router, admin_router, public_router
 from app.routers.app_api import router as app_api_router
 from app.routers.device import router as device_router
+from app.routers.parental_controls import router as parental_controls_router
 from app.services.auth_service import AuthService
 from app.db.database import async_session_maker
 
@@ -58,6 +59,7 @@ app.include_router(customer_router)
 app.include_router(admin_router)
 app.include_router(app_api_router)  # Desktop app API
 app.include_router(device_router)  # Device & installation tracking
+app.include_router(parental_controls_router)  # Parental controls API
 
 
 if __name__ == "__main__":

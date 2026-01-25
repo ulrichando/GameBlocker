@@ -1,11 +1,18 @@
 import uuid
 from datetime import datetime
 from enum import Enum as PyEnum
+from typing import TYPE_CHECKING
 from sqlalchemy import String, Boolean, DateTime, Enum, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
 
 from app.db.database import Base
+
+if TYPE_CHECKING:
+    from app.models.subscription import Subscription
+    from app.models.transaction import Transaction
+    from app.models.device import Download, Installation
+    from app.models.parental_controls import UserSettings, Alert
 
 
 class UserRole(str, PyEnum):
@@ -33,6 +40,10 @@ class User(Base):
     refresh_tokens: Mapped[list["RefreshToken"]] = relationship("RefreshToken", back_populates="user")
     downloads: Mapped[list["Download"]] = relationship("Download", back_populates="user")
     installations: Mapped[list["Installation"]] = relationship("Installation", back_populates="user")
+
+    # Parental control relationships
+    settings: Mapped["UserSettings | None"] = relationship("UserSettings", back_populates="user", uselist=False)
+    alerts: Mapped[list["Alert"]] = relationship("Alert", back_populates="user")
 
     @property
     def full_name(self) -> str:
@@ -75,7 +86,3 @@ class RefreshToken(Base):
     user: Mapped["User"] = relationship("User", back_populates="refresh_tokens")
 
 
-# Import for type hints
-from app.models.subscription import Subscription
-from app.models.transaction import Transaction
-from app.models.device import Download, Installation

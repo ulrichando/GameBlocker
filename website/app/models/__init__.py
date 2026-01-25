@@ -2,6 +2,17 @@ from .user import User, UserRole, EmailVerificationToken, PasswordResetToken, Re
 from .subscription import Subscription, SubscriptionStatus
 from .transaction import Transaction, TransactionStatus
 from .device import Download, Installation, Platform, DownloadSource, InstallationStatus
+from .parental_controls import (
+    ScreenTimeConfig,
+    BlockedApp,
+    WebFilterConfig,
+    WebFilterRule,
+    Alert,
+    UserSettings,
+    WebFilterCategory,
+    AlertType,
+    AlertSeverity,
+)
 
 __all__ = [
     "User",
@@ -18,4 +29,14 @@ __all__ = [
     "Platform",
     "DownloadSource",
     "InstallationStatus",
+    # Parental controls
+    "ScreenTimeConfig",
+    "BlockedApp",
+    "WebFilterConfig",
+    "WebFilterRule",
+    "Alert",
+    "UserSettings",
+    "WebFilterCategory",
+    "AlertType",
+    "AlertSeverity",
 ]

@@ -190,11 +190,11 @@ export default function DashboardPage() {
     { icon: BarChart3, label: "Dashboard", active: true, href: "/dashboard" },
     { icon: Download, label: "Download App", href: "/dashboard/download" },
     { icon: Laptop, label: "My Devices", href: "/dashboard/devices" },
-    { icon: Clock, label: "Screen Time", href: "#" },
-    { icon: Ban, label: "Blocked Apps", href: "#" },
-    { icon: Globe, label: "Web Filters", href: "#" },
-    { icon: Bell, label: "Alerts", href: "#" },
-    { icon: Settings, label: "Settings", href: "#" },
+    { icon: Clock, label: "Screen Time", href: "/dashboard/screen-time" },
+    { icon: Ban, label: "Blocked Apps", href: "/dashboard/blocked-apps" },
+    { icon: Globe, label: "Web Filters", href: "/dashboard/web-filters" },
+    { icon: Bell, label: "Alerts", href: "/dashboard/alerts" },
+    { icon: Settings, label: "Settings", href: "/dashboard/settings" },
   ];
 
   return (
@@ -402,8 +402,8 @@ export default function DashboardPage() {
                   {[
                     { label: "Download App", description: "Install on a new device", href: "/dashboard/download", icon: Download },
                     { label: "Manage Devices", description: "View and manage installations", href: "/dashboard/devices", icon: Laptop },
-                    { label: "Screen Time Settings", description: "Configure daily limits", href: "#", icon: Clock },
-                    { label: "View Reports", description: "See activity analytics", href: "#", icon: BarChart3 },
+                    { label: "Screen Time Settings", description: "Configure daily limits", href: "/dashboard/screen-time", icon: Clock },
+                    { label: "Web Filters", description: "Block websites by category", href: "/dashboard/web-filters", icon: Globe },
                   ].map((action) => (
                     <Link
                       key={action.label}

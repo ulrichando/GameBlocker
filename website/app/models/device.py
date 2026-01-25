@@ -1,11 +1,16 @@
 import uuid
 from datetime import datetime
 from enum import Enum as PyEnum
+from typing import TYPE_CHECKING
 from sqlalchemy import String, DateTime, Enum, ForeignKey, Text, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
 
 from app.db.database import Base
+
+if TYPE_CHECKING:
+    from app.models.user import User
+    from app.models.parental_controls import ScreenTimeConfig, BlockedApp, WebFilterConfig, Alert
 
 
 class Platform(str, PyEnum):
@@ -74,6 +79,10 @@ class Installation(Base):
     user: Mapped["User"] = relationship("User", back_populates="installations")
     download: Mapped["Download | None"] = relationship("Download", back_populates="installation")
 
+    # Parental control relationships
+    screen_time_config: Mapped["ScreenTimeConfig | None"] = relationship("ScreenTimeConfig", back_populates="installation", uselist=False)
+    blocked_apps: Mapped[list["BlockedApp"]] = relationship("BlockedApp", back_populates="installation", cascade="all, delete-orphan")
+    web_filter_config: Mapped["WebFilterConfig | None"] = relationship("WebFilterConfig", back_populates="installation", uselist=False)
+    alerts: Mapped[list["Alert"]] = relationship("Alert", back_populates="installation", cascade="all, delete-orphan")
 
-# Import for type hints
-from app.models.user import User
+
