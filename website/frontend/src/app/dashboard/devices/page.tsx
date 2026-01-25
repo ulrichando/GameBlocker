@@ -18,6 +18,7 @@ import {
   Loader2,
   RefreshCw,
   Plus,
+  Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCustomerAuth } from "@/hooks/useCustomerAuth";
@@ -70,6 +71,7 @@ export default function DevicesPage() {
   const [devices, setDevices] = useState<Installation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const fetchDevices = async () => {
     setIsLoading(true);
@@ -83,6 +85,29 @@ export default function DevicesPage() {
       setError(err instanceof Error ? err.message : "Failed to load devices");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const deleteDevice = async (deviceId: string, deviceName: string) => {
+    if (!confirm(`Are you sure you want to remove "${deviceName || 'this device'}"?\n\nThis will remove it from your account.`)) {
+      return;
+    }
+
+    setDeletingId(deviceId);
+    try {
+      const response = await authFetch(`${API_URL}/device/installation/${deviceId}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.detail || "Failed to delete device");
+      }
+      // Remove from local state
+      setDevices(devices.filter((d) => d.id !== deviceId));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete device");
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -236,25 +261,39 @@ export default function DevicesPage() {
                       </div>
                     </div>
 
-                    <div className="flex flex-col items-end gap-2">
-                      {device.is_blocked ? (
-                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-500/10">
-                          <XCircle className="w-4 h-4 text-red-400" />
-                          <span className="text-sm font-medium text-red-400">Blocked</span>
-                        </div>
-                      ) : (
-                        <div
-                          className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${statusConfig.bg}`}
-                        >
-                          <StatusIcon className={`w-4 h-4 ${statusConfig.text}`} />
-                          <span className={`text-sm font-medium capitalize ${statusConfig.text}`}>
-                            {device.status}
-                          </span>
-                        </div>
-                      )}
-                      {device.blocked_reason && (
-                        <p className="text-xs text-red-400">{device.blocked_reason}</p>
-                      )}
+                    <div className="flex items-start gap-3">
+                      <div className="flex flex-col items-end gap-2">
+                        {device.is_blocked ? (
+                          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-500/10">
+                            <XCircle className="w-4 h-4 text-red-400" />
+                            <span className="text-sm font-medium text-red-400">Blocked</span>
+                          </div>
+                        ) : (
+                          <div
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${statusConfig.bg}`}
+                          >
+                            <StatusIcon className={`w-4 h-4 ${statusConfig.text}`} />
+                            <span className={`text-sm font-medium capitalize ${statusConfig.text}`}>
+                              {device.status}
+                            </span>
+                          </div>
+                        )}
+                        {device.blocked_reason && (
+                          <p className="text-xs text-red-400">{device.blocked_reason}</p>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => deleteDevice(device.id, device.device_name || `${device.platform} Device`)}
+                        disabled={deletingId === device.id}
+                        className="p-2 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-50"
+                        title="Remove device"
+                      >
+                        {deletingId === device.id ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="w-4 h-4" />
+                        )}
+                      </button>
                     </div>
                   </div>
                 </motion.div>

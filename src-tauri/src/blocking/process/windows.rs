@@ -4,7 +4,7 @@ use super::{ProcessBlocker, ProcessError, ProcessInfo};
 
 #[cfg(target_os = "windows")]
 use windows::Win32::{
-    Foundation::{CloseHandle, HANDLE},
+    Foundation::CloseHandle,
     System::{
         Diagnostics::ToolHelp::{
             CreateToolhelp32Snapshot, Process32First, Process32Next, PROCESSENTRY32,

@@ -6,7 +6,6 @@ use crate::daemon::ipc::{
     read_message, write_message, BlockedProcessInfo, DaemonRequest, DaemonResponse,
 };
 use std::collections::HashSet;
-use std::fs;
 use std::io::{BufReader, BufWriter};
 use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::sync::Arc;
@@ -16,14 +15,14 @@ use tracing::{error, info, warn};
 #[cfg(unix)]
 use crate::daemon::ipc::SOCKET_PATH;
 #[cfg(unix)]
+use std::fs;
+#[cfg(unix)]
 use std::os::unix::net::{UnixListener, UnixStream};
 #[cfg(unix)]
 use std::path::Path;
 
 #[cfg(windows)]
 use crate::daemon::ipc::PIPE_NAME;
-#[cfg(windows)]
-use std::io::ErrorKind;
 
 /// Daemon state shared across threads
 pub struct DaemonState {
@@ -113,12 +112,9 @@ pub fn run_daemon() -> std::io::Result<()> {
 /// Run the daemon main loop (Windows version using named pipes)
 #[cfg(windows)]
 pub fn run_daemon() -> std::io::Result<()> {
-    use windows::Win32::Foundation::HANDLE;
-    use windows::Win32::Storage::FileSystem::{
-        CreateFileW, FILE_FLAG_OVERLAPPED, OPEN_EXISTING, PIPE_ACCESS_DUPLEX,
-    };
+    use windows::Win32::Storage::FileSystem::PIPE_ACCESS_DUPLEX;
     use windows::Win32::System::Pipes::{
-        ConnectNamedPipe, CreateNamedPipeW, DisconnectNamedPipe,
+        ConnectNamedPipe, CreateNamedPipeW,
         PIPE_READMODE_MESSAGE, PIPE_TYPE_MESSAGE, PIPE_UNLIMITED_INSTANCES, PIPE_WAIT,
     };
     use windows::core::PCWSTR;
@@ -153,14 +149,13 @@ pub fn run_daemon() -> std::io::Result<()> {
             )
         };
 
-        let pipe = match pipe {
-            Ok(p) => p,
-            Err(e) => {
-                error!("Failed to create named pipe: {}", e);
-                std::thread::sleep(Duration::from_secs(1));
-                continue;
-            }
-        };
+        // Check if pipe creation failed (returns INVALID_HANDLE_VALUE on error)
+        if pipe.is_invalid() {
+            let err = unsafe { windows::Win32::Foundation::GetLastError() };
+            error!("Failed to create named pipe: {:?}", err);
+            std::thread::sleep(Duration::from_secs(1));
+            continue;
+        }
 
         // Wait for a client to connect (with timeout via polling)
         let connected = unsafe { ConnectNamedPipe(pipe, None) };
@@ -495,27 +490,44 @@ fn apply_blocking_now() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
-    // Apply firewall blocking if needed
-    let any_blocking = config.game_blocking_enabled || config.ai_blocking_enabled || config.dns_blocking_enabled;
-    if should_block && any_blocking {
-        // Enable firewall blocking (direct, no pkexec)
-        let _ = blocking::apply_network_blocking_direct();
-    } else {
-        let _ = blocking::remove_network_blocking_direct();
+    // Apply firewall blocking if needed (Linux only for now)
+    #[cfg(target_os = "linux")]
+    {
+        let any_blocking = config.game_blocking_enabled || config.ai_blocking_enabled || config.dns_blocking_enabled;
+        if should_block && any_blocking {
+            // Enable firewall blocking (direct, no pkexec)
+            let _ = blocking::apply_network_blocking_direct();
+        } else {
+            let _ = blocking::remove_network_blocking_direct();
+        }
     }
 
     Ok(())
 }
 
-/// Enable firewall blocking
+/// Enable firewall blocking (Linux only)
+#[cfg(target_os = "linux")]
 fn enable_firewall_blocking() -> Result<(), Box<dyn std::error::Error>> {
     blocking::block_doh_providers_direct()?;
     Ok(())
 }
 
-/// Disable firewall blocking
+/// Enable firewall blocking (no-op on non-Linux)
+#[cfg(not(target_os = "linux"))]
+fn enable_firewall_blocking() -> Result<(), Box<dyn std::error::Error>> {
+    Ok(())
+}
+
+/// Disable firewall blocking (Linux only)
+#[cfg(target_os = "linux")]
 fn disable_firewall_blocking() -> Result<(), Box<dyn std::error::Error>> {
     blocking::unblock_doh_providers_direct()?;
+    Ok(())
+}
+
+/// Disable firewall blocking (no-op on non-Linux)
+#[cfg(not(target_os = "linux"))]
+fn disable_firewall_blocking() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 

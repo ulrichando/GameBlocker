@@ -418,6 +418,39 @@ async def list_user_installations(
     ]
 
 
+@router.delete("/installation/{installation_id}")
+async def delete_installation(
+    installation_id: str,
+    current_user: CurrentUser,
+    db: DbSession,
+):
+    """Delete an installation record.
+
+    Allows users to remove a device from their account.
+    """
+    from uuid import UUID
+    try:
+        inst_uuid = UUID(installation_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid installation ID")
+
+    result = await db.execute(
+        select(Installation).where(
+            Installation.id == inst_uuid,
+            Installation.user_id == current_user.id,
+        )
+    )
+    installation = result.scalar_one_or_none()
+
+    if not installation:
+        raise HTTPException(status_code=404, detail="Installation not found")
+
+    await db.delete(installation)
+    await db.commit()
+
+    return {"status": "deleted", "message": "Device removed successfully"}
+
+
 @router.get("/installation/status")
 async def get_installation_status(
     device_id: str,
