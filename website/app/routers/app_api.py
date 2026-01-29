@@ -20,6 +20,8 @@ from app.models.parental_controls import Alert, AlertType, AlertSeverity
 from app.core.security import decode_token, create_access_token
 from app.core.dependencies import get_current_user
 from app.services.user_service import UserService
+from app.services.sync_service import SyncService
+from app.services.webhook_service import WebhookService
 
 
 router = APIRouter(prefix="/api/v1/app", tags=["App API"])
@@ -421,7 +423,7 @@ async def sync_settings(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Sync settings between the desktop app and cloud.
+    Sync settings between the desktop app and cloud (push).
     Only available for Pro plan users.
     """
     # Check if user has Pro plan or Premium plan (which includes Pro features)
@@ -440,8 +442,30 @@ async def sync_settings(
             detail="Cloud sync is only available for Pro plan users."
         )
 
-    # TODO: Implement actual sync storage
-    # For now, just acknowledge the sync
+    # Get installation by device_id
+    result = await db.execute(
+        select(Installation).where(
+            Installation.device_id == request.device_id,
+            Installation.user_id == user.id,
+        )
+    )
+    installation = result.scalar_one_or_none()
+
+    if not installation:
+        raise HTTPException(
+            status_code=404,
+            detail="Device not found. Please register the device first."
+        )
+
+    # Push settings to cloud
+    await SyncService.push_settings(
+        db=db,
+        installation=installation,
+        blocked_sites=request.blocked_sites,
+        blocked_games=request.blocked_games,
+        schedules=request.schedules,
+    )
+
     return SyncResponse(
         success=True,
         blocked_sites=request.blocked_sites or [],
@@ -449,6 +473,87 @@ async def sync_settings(
         schedules=request.schedules or {},
         last_sync=datetime.utcnow()
     )
+
+
+@router.get("/sync/{device_id}")
+async def pull_sync_settings(
+    device_id: str,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Pull settings from cloud to device.
+    Only available for Pro plan users.
+    """
+    # Check if user has Pro plan
+    result = await db.execute(
+        select(Subscription).where(
+            Subscription.user_id == user.id,
+            Subscription.status.in_([SubscriptionStatus.ACTIVE, SubscriptionStatus.TRIALING]),
+            Subscription.plan_name.in_(["Pro", "Premium Monthly", "Premium Yearly"])
+        )
+    )
+    subscription = result.scalar_one_or_none()
+
+    if not subscription:
+        raise HTTPException(
+            status_code=403,
+            detail="Cloud sync is only available for Pro plan users."
+        )
+
+    # Get installation
+    result = await db.execute(
+        select(Installation).where(
+            Installation.device_id == device_id,
+            Installation.user_id == user.id,
+        )
+    )
+    installation = result.scalar_one_or_none()
+
+    if not installation:
+        raise HTTPException(
+            status_code=404,
+            detail="Device not found."
+        )
+
+    # Pull settings from cloud
+    return await SyncService.pull_settings(db=db, installation=installation)
+
+
+@router.get("/sync/status/{device_id}")
+async def get_sync_status(
+    device_id: str,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Get sync status for a device."""
+    # Get installation
+    result = await db.execute(
+        select(Installation).where(
+            Installation.device_id == device_id,
+            Installation.user_id == user.id,
+        )
+    )
+    installation = result.scalar_one_or_none()
+
+    if not installation:
+        raise HTTPException(
+            status_code=404,
+            detail="Device not found."
+        )
+
+    status = await SyncService.get_sync_status(db=db, installation_id=installation.id)
+
+    if not status:
+        return {
+            "synced": False,
+            "message": "Device has never been synced."
+        }
+
+    return {
+        "synced": True,
+        **status
+    }
 
 
 # ============================================================================
@@ -544,6 +649,34 @@ async def create_alert(
     db.add(alert)
     await db.commit()
     await db.refresh(alert)
+
+    # Trigger webhooks for this alert (fire and forget)
+    try:
+        # Map alert type to webhook event
+        webhook_event = f"alert.{alert_type.value}"
+        webhook_payload = {
+            "alert_id": str(alert.id),
+            "alert_type": alert_type.value,
+            "severity": severity.value,
+            "title": request.title,
+            "message": request.message,
+            "details": request.details,
+            "device_id": device_id,
+            "device_name": installation.device_name if installation else None,
+        }
+
+        # Trigger webhooks - don't await to avoid blocking response
+        import asyncio
+        asyncio.create_task(
+            WebhookService.trigger_webhooks(db, user.id, webhook_event, webhook_payload)
+        )
+        # Also trigger generic alert.created event
+        asyncio.create_task(
+            WebhookService.trigger_webhooks(db, user.id, "alert.created", webhook_payload)
+        )
+    except Exception:
+        # Webhooks should never block the main flow
+        pass
 
     return CreateAlertResponse(
         success=True,

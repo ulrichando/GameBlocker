@@ -21,6 +21,11 @@ import {
   Copy,
   Trash2,
   Check,
+  Globe,
+  Send,
+  AlertCircle,
+  CheckCircle,
+  XCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCustomerAuth } from "@/hooks/useCustomerAuth";
@@ -58,6 +63,26 @@ interface APIKey {
 
 interface NewAPIKey extends APIKey {
   key: string;
+}
+
+interface Webhook {
+  id: string;
+  url: string;
+  events: string[];
+  is_active: boolean;
+  description: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+interface WebhookWithSecret extends Webhook {
+  secret: string;
+}
+
+interface WebhookEvent {
+  id: string;
+  name: string;
+  description: string;
 }
 
 const TIMEZONES = [
@@ -101,6 +126,18 @@ export default function SettingsPage() {
   const [isCreatingKey, setIsCreatingKey] = useState(false);
   const [newlyCreatedKey, setNewlyCreatedKey] = useState<string | null>(null);
   const [copiedKeyId, setCopiedKeyId] = useState<string | null>(null);
+
+  // Webhooks state
+  const [webhooks, setWebhooks] = useState<Webhook[]>([]);
+  const [availableEvents, setAvailableEvents] = useState<WebhookEvent[]>([]);
+  const [isLoadingWebhooks, setIsLoadingWebhooks] = useState(false);
+  const [showCreateWebhookForm, setShowCreateWebhookForm] = useState(false);
+  const [newWebhookUrl, setNewWebhookUrl] = useState("");
+  const [newWebhookDescription, setNewWebhookDescription] = useState("");
+  const [newWebhookEvents, setNewWebhookEvents] = useState<string[]>([]);
+  const [isCreatingWebhook, setIsCreatingWebhook] = useState(false);
+  const [newlyCreatedWebhook, setNewlyCreatedWebhook] = useState<WebhookWithSecret | null>(null);
+  const [testingWebhookId, setTestingWebhookId] = useState<string | null>(null);
 
   const fetchSettings = async () => {
     setIsLoading(true);
@@ -272,10 +309,139 @@ export default function SettingsPage() {
     }
   };
 
+  // Webhook functions
+  const fetchWebhooks = async () => {
+    setIsLoadingWebhooks(true);
+    try {
+      const [webhooksRes, eventsRes] = await Promise.all([
+        authFetch(`${API_URL}/api/v1/webhooks`),
+        authFetch(`${API_URL}/api/v1/webhooks/events`),
+      ]);
+
+      if (webhooksRes.ok) {
+        const data = await webhooksRes.json();
+        setWebhooks(data);
+      }
+
+      if (eventsRes.ok) {
+        const data = await eventsRes.json();
+        setAvailableEvents(data.events || []);
+      }
+    } catch (err) {
+      console.error("Failed to fetch webhooks:", err);
+    } finally {
+      setIsLoadingWebhooks(false);
+    }
+  };
+
+  const createWebhook = async () => {
+    if (!newWebhookUrl.trim() || newWebhookEvents.length === 0) return;
+
+    setIsCreatingWebhook(true);
+    setError(null);
+    try {
+      const response = await authFetch(`${API_URL}/api/v1/webhooks`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          url: newWebhookUrl,
+          events: newWebhookEvents,
+          description: newWebhookDescription || null,
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.detail || "Failed to create webhook");
+      }
+
+      const data: WebhookWithSecret = await response.json();
+      setNewlyCreatedWebhook(data);
+      setWebhooks((prev) => [{ ...data, secret: undefined } as unknown as Webhook, ...prev]);
+      setNewWebhookUrl("");
+      setNewWebhookDescription("");
+      setNewWebhookEvents([]);
+      setShowCreateWebhookForm(false);
+      setSuccess("Webhook created! Make sure to copy the secret - it won't be shown again.");
+      setTimeout(() => setSuccess(null), 10000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to create webhook");
+    } finally {
+      setIsCreatingWebhook(false);
+    }
+  };
+
+  const deleteWebhook = async (webhookId: string) => {
+    if (!confirm("Are you sure you want to delete this webhook? This cannot be undone.")) return;
+
+    try {
+      const response = await authFetch(`${API_URL}/api/v1/webhooks/${webhookId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) throw new Error("Failed to delete webhook");
+
+      setWebhooks((prev) => prev.filter((w) => w.id !== webhookId));
+      setSuccess("Webhook deleted successfully");
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete webhook");
+    }
+  };
+
+  const toggleWebhook = async (webhookId: string, isActive: boolean) => {
+    try {
+      const response = await authFetch(`${API_URL}/api/v1/webhooks/${webhookId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ is_active: !isActive }),
+      });
+
+      if (!response.ok) throw new Error("Failed to update webhook");
+
+      setWebhooks((prev) =>
+        prev.map((w) => (w.id === webhookId ? { ...w, is_active: !isActive } : w))
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to update webhook");
+    }
+  };
+
+  const testWebhook = async (webhookId: string) => {
+    setTestingWebhookId(webhookId);
+    try {
+      const response = await authFetch(`${API_URL}/api/v1/webhooks/${webhookId}/test`, {
+        method: "POST",
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setSuccess("Test webhook sent successfully!");
+      } else {
+        setError(`Webhook test failed: ${data.error_message || "Unknown error"}`);
+      }
+      setTimeout(() => {
+        setSuccess(null);
+        setError(null);
+      }, 5000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to test webhook");
+    } finally {
+      setTestingWebhookId(null);
+    }
+  };
+
+  const toggleEventSelection = (eventId: string) => {
+    setNewWebhookEvents((prev) =>
+      prev.includes(eventId) ? prev.filter((e) => e !== eventId) : [...prev, eventId]
+    );
+  };
+
   useEffect(() => {
     if (!authLoading) {
       fetchSettings();
       fetchApiKeys();
+      fetchWebhooks();
     }
   }, [authLoading]);
 
@@ -723,6 +889,239 @@ export default function SettingsPage() {
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+
+            {/* Webhooks */}
+            <motion.div
+              className="bg-surface-card rounded-xl border border-white/5 p-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7 }}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <Globe className="w-5 h-5 text-primary-400" />
+                  <h2 className="text-sm font-semibold text-white">Webhooks</h2>
+                </div>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => setShowCreateWebhookForm(!showCreateWebhookForm)}
+                >
+                  <Plus className="w-4 h-4" />
+                  New Webhook
+                </Button>
+              </div>
+
+              <p className="text-gray-400 text-sm mb-4">
+                Receive real-time notifications when events occur on your devices.
+              </p>
+
+              {/* Create Webhook Form */}
+              {showCreateWebhookForm && (
+                <motion.div
+                  className="bg-surface-elevated rounded-lg p-4 mb-4 border border-white/10"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                >
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-400 mb-2">
+                        Webhook URL
+                      </label>
+                      <input
+                        type="url"
+                        value={newWebhookUrl}
+                        onChange={(e) => setNewWebhookUrl(e.target.value)}
+                        placeholder="https://your-server.com/webhook"
+                        className="w-full bg-surface-base border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-400 mb-2">
+                        Description (optional)
+                      </label>
+                      <input
+                        type="text"
+                        value={newWebhookDescription}
+                        onChange={(e) => setNewWebhookDescription(e.target.value)}
+                        placeholder="e.g., Slack notifications"
+                        className="w-full bg-surface-base border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-400 mb-2">
+                        Events to subscribe to
+                      </label>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {availableEvents.map((event) => (
+                          <label
+                            key={event.id}
+                            className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                              newWebhookEvents.includes(event.id)
+                                ? "bg-primary-500/10 border-primary-500/30"
+                                : "bg-surface-base border-white/10 hover:border-white/20"
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={newWebhookEvents.includes(event.id)}
+                              onChange={() => toggleEventSelection(event.id)}
+                              className="mt-1"
+                            />
+                            <div>
+                              <div className="font-medium text-white text-sm">{event.name}</div>
+                              <div className="text-xs text-gray-500">{event.description}</div>
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="ghost"
+                        onClick={() => {
+                          setShowCreateWebhookForm(false);
+                          setNewWebhookUrl("");
+                          setNewWebhookDescription("");
+                          setNewWebhookEvents([]);
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={createWebhook}
+                        disabled={isCreatingWebhook || !newWebhookUrl.trim() || newWebhookEvents.length === 0}
+                      >
+                        {isCreatingWebhook ? <Loader2 className="w-4 h-4 animate-spin" /> : "Create Webhook"}
+                      </Button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Newly Created Webhook Secret */}
+              {newlyCreatedWebhook && (
+                <motion.div
+                  className="bg-green-500/10 border border-green-500/30 rounded-lg p-4 mb-4"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                >
+                  <p className="text-green-400 text-sm font-medium mb-2">
+                    Your webhook secret (copy it now - it won&apos;t be shown again):
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <code className="flex-1 bg-surface-base rounded px-3 py-2 text-sm text-white font-mono break-all">
+                      {newlyCreatedWebhook.secret}
+                    </code>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => {
+                        copyToClipboard(newlyCreatedWebhook.secret);
+                        setNewlyCreatedWebhook(null);
+                      }}
+                    >
+                      <Copy className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  <p className="text-gray-500 text-xs mt-2">
+                    Use this secret to verify webhook signatures via the X-Webhook-Signature header.
+                  </p>
+                </motion.div>
+              )}
+
+              {/* Webhooks List */}
+              {isLoadingWebhooks ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="w-5 h-5 text-primary-500 animate-spin" />
+                </div>
+              ) : webhooks.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <Globe className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                  <p>No webhooks configured yet</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {webhooks.map((webhook) => (
+                    <div
+                      key={webhook.id}
+                      className={`p-4 rounded-lg border ${
+                        webhook.is_active
+                          ? "bg-surface-elevated border-white/10"
+                          : "bg-surface-elevated/50 border-white/5 opacity-60"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            {webhook.is_active ? (
+                              <CheckCircle className="w-4 h-4 text-green-400 shrink-0" />
+                            ) : (
+                              <XCircle className="w-4 h-4 text-gray-500 shrink-0" />
+                            )}
+                            <span className="font-medium text-white truncate">
+                              {webhook.description || webhook.url}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-500 truncate mb-2">{webhook.url}</p>
+                          <div className="flex flex-wrap gap-1">
+                            {webhook.events.map((event) => (
+                              <span
+                                key={event}
+                                className="text-xs px-2 py-0.5 bg-primary-500/10 text-primary-400 rounded"
+                              >
+                                {event}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => testWebhook(webhook.id)}
+                            disabled={testingWebhookId === webhook.id || !webhook.is_active}
+                            title="Send test webhook"
+                          >
+                            {testingWebhookId === webhook.id ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Send className="w-4 h-4" />
+                            )}
+                          </Button>
+                          <button
+                            onClick={() => toggleWebhook(webhook.id, webhook.is_active)}
+                            className="text-primary-400 hover:text-primary-300 transition-colors"
+                            title={webhook.is_active ? "Disable webhook" : "Enable webhook"}
+                          >
+                            {webhook.is_active ? (
+                              <ToggleRight className="w-7 h-7" />
+                            ) : (
+                              <ToggleLeft className="w-7 h-7 text-gray-500" />
+                            )}
+                          </button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => deleteWebhook(webhook.id)}
+                            className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                            title="Delete webhook"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="mt-2 text-xs text-gray-600">
+                        Created {new Date(webhook.created_at).toLocaleDateString()}
                       </div>
                     </div>
                   ))}

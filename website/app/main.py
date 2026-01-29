@@ -17,6 +17,7 @@ from app.routers.app_api import router as app_api_router
 from app.routers.device import router as device_router
 from app.routers.parental_controls import router as parental_controls_router
 from app.routers.api_keys import router as api_keys_router
+from app.routers.webhooks import router as webhooks_router
 from sqlalchemy import update
 from app.models import User
 from app.services.auth_service import AuthService
@@ -68,6 +69,7 @@ app.include_router(app_api_router)  # Desktop app API
 app.include_router(device_router)  # Device & installation tracking
 app.include_router(parental_controls_router)  # Parental controls API
 app.include_router(api_keys_router)  # API key management
+app.include_router(webhooks_router)  # Webhook management
 
 
 if __name__ == "__main__":

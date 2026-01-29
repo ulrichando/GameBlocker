@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from app.models.device import Download, Installation
     from app.models.parental_controls import UserSettings, Alert
     from app.models.api_key import APIKey
+    from app.models.webhook import Webhook
 
 
 class UserRole(str, PyEnum):
@@ -48,6 +49,9 @@ class User(Base):
 
     # API keys
     api_keys: Mapped[list["APIKey"]] = relationship("APIKey", back_populates="user", cascade="all, delete-orphan")
+
+    # Webhooks
+    webhooks: Mapped[list["Webhook"]] = relationship("Webhook", back_populates="user", cascade="all, delete-orphan")
 
     @property
     def full_name(self) -> str:
