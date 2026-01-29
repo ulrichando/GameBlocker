@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { TitleBar } from "@/components/TitleBar";
 import { invoke } from "@tauri-apps/api/core";
 
 interface BlocklistPageProps {
@@ -104,35 +105,33 @@ export function Blocklist({ onBack }: BlocklistPageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="app-header">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={onBack}>
-            <ArrowLeft className="h-5 w-5" />
+    <div className="h-full flex flex-col bg-background overflow-hidden">
+      {/* Header - Fluent 2 Custom Title Bar */}
+      <TitleBar>
+        <div className="flex items-center px-2 gap-1 h-full">
+          <Button variant="ghost" size="icon" onClick={onBack} className="h-6 w-6 rounded hover:bg-foreground/10">
+            <ArrowLeft className="h-3.5 w-3.5" />
           </Button>
-          <div>
-            <h1 className="text-xl font-semibold text-foreground">Blocklist</h1>
-            <p className="text-sm text-muted-foreground">Manage blocked items</p>
-          </div>
+          <span className="text-xs font-semibold">Blocklist</span>
         </div>
-      </header>
+      </TitleBar>
 
-      <main className="max-w-5xl mx-auto px-4 py-6 space-y-6">
+      <main className="flex-1 overflow-y-auto scrollable-content">
+        <div className="max-w-5xl mx-auto px-4 py-4 space-y-3">
         {/* Tabs */}
-        <div className="flex gap-2 border-b border-border">
+        <div className="flex gap-1 border-b border-border">
           {categories.map((category, index) => (
             <button
               key={category.name}
               onClick={() => setActiveTab(index)}
-              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+              className={`px-3 py-1.5 text-xs font-medium border-b-2 transition-colors ${
                 activeTab === index
                   ? "border-primary text-primary"
                   : "border-transparent text-muted-foreground hover:text-foreground"
               }`}
             >
               {category.name}
-              <Badge variant="secondary" className="ml-2">
+              <Badge variant="secondary" className="ml-1.5 text-xs rounded">
                 {category.items.length}
               </Badge>
             </button>
@@ -140,38 +139,40 @@ export function Blocklist({ onBack }: BlocklistPageProps) {
         </div>
 
         {/* Search and Add */}
-        <div className="flex gap-4">
+        <div className="flex gap-2">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search..."
-              className="pl-10"
+              className="pl-9 h-8 text-sm rounded-md"
             />
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-1.5">
             <Input
               value={newItem}
               onChange={(e) => setNewItem(e.target.value)}
               placeholder={activeTab === 0 ? "process.exe" : "example.com"}
               onKeyDown={(e) => e.key === "Enter" && handleAddItem()}
+              className="h-8 text-sm rounded-md"
             />
-            <Button onClick={handleAddItem}>
-              <Plus className="h-4 w-4" />
+            <Button onClick={handleAddItem} size="sm" className="h-8 w-8 p-0 rounded-md">
+              <Plus className="h-3.5 w-3.5" />
             </Button>
           </div>
         </div>
 
         {/* Filter Buttons */}
-        <div className="flex gap-2">
+        <div className="flex gap-1.5">
           <Button
             variant={filterMode === "all" ? "default" : "outline"}
             size="sm"
             onClick={() => setFilterMode("all")}
+            className="rounded-md text-xs h-7"
           >
             All
-            <Badge variant="secondary" className="ml-2">
+            <Badge variant="secondary" className="ml-1.5 text-xs rounded">
               {currentCategory?.items.length ?? 0}
             </Badge>
           </Button>
@@ -179,10 +180,11 @@ export function Blocklist({ onBack }: BlocklistPageProps) {
             variant={filterMode === "blocked" ? "default" : "outline"}
             size="sm"
             onClick={() => setFilterMode("blocked")}
+            className="rounded-md text-xs h-7"
           >
-            <Shield className="h-4 w-4 mr-1 text-red-500" />
+            <Shield className="h-3 w-3 mr-1 text-red-500" />
             Blocked
-            <Badge variant="secondary" className="ml-2">
+            <Badge variant="secondary" className="ml-1.5 text-xs rounded">
               {blockedCount}
             </Badge>
           </Button>
@@ -190,10 +192,11 @@ export function Blocklist({ onBack }: BlocklistPageProps) {
             variant={filterMode === "allowed" ? "default" : "outline"}
             size="sm"
             onClick={() => setFilterMode("allowed")}
+            className="rounded-md text-xs h-7"
           >
-            <ShieldOff className="h-4 w-4 mr-1 text-green-500" />
+            <ShieldOff className="h-3 w-3 mr-1 text-green-500" />
             Allowed
-            <Badge variant="secondary" className="ml-2">
+            <Badge variant="secondary" className="ml-1.5 text-xs rounded">
               {allowedCount}
             </Badge>
           </Button>
@@ -201,49 +204,50 @@ export function Blocklist({ onBack }: BlocklistPageProps) {
 
         {/* Items List */}
         <Card className="fluent-card">
-          <CardContent className="pt-6">
+          <CardContent className="py-3 px-4">
             {isLoading ? (
-              <div className="text-center py-8 text-muted-foreground">Loading...</div>
+              <div className="text-center py-6 text-muted-foreground text-sm">Loading...</div>
             ) : filteredItems && filteredItems.length > 0 ? (
-              <div className="space-y-2 max-h-96 overflow-y-auto">
+              <div className="space-y-1.5 max-h-80 overflow-y-auto">
                 {filteredItems.map((item) => (
                   <div
                     key={item.value}
-                    className={`flex items-center justify-between p-3 rounded-lg ${
+                    className={`flex items-center justify-between p-2 rounded-md ${
                       item.is_allowed
                         ? "bg-success/10"
                         : "bg-muted"
                     }`}
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
                       {item.is_allowed ? (
-                        <ShieldOff className="h-4 w-4 text-success" />
+                        <ShieldOff className="h-3.5 w-3.5 text-success" />
                       ) : (
-                        <Shield className="h-4 w-4 text-destructive" />
+                        <Shield className="h-3.5 w-3.5 text-destructive" />
                       )}
-                      <span className="font-mono text-sm text-foreground">{item.value}</span>
+                      <span className="font-mono text-xs text-foreground">{item.value}</span>
                       {item.is_default && (
-                        <Badge variant="outline" className="text-xs">
+                        <Badge variant="outline" className="text-caption-2 px-1 py-0 rounded">
                           Default
                         </Badge>
                       )}
                       {item.is_allowed && (
-                        <Badge variant="success" className="text-xs">
+                        <Badge variant="success" className="text-caption-2 px-1 py-0 rounded">
                           Allowed
                         </Badge>
                       )}
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-1">
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => handleToggleWhitelist(item)}
                         title={item.is_allowed ? "Block this item" : "Allow this item"}
+                        className="h-6 w-6 p-0 rounded"
                       >
                         {item.is_allowed ? (
-                          <Shield className="h-4 w-4" />
+                          <Shield className="h-3.5 w-3.5" />
                         ) : (
-                          <ShieldOff className="h-4 w-4" />
+                          <ShieldOff className="h-3.5 w-3.5" />
                         )}
                       </Button>
                       {!item.is_default && (
@@ -251,8 +255,9 @@ export function Blocklist({ onBack }: BlocklistPageProps) {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleRemoveItem(item.value)}
+                          className="h-6 w-6 p-0 rounded"
                         >
-                          <Trash2 className="h-4 w-4 text-red-500" />
+                          <Trash2 className="h-3.5 w-3.5 text-red-500" />
                         </Button>
                       )}
                     </div>
@@ -260,7 +265,7 @@ export function Blocklist({ onBack }: BlocklistPageProps) {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8 text-muted-foreground">
+              <div className="text-center py-6 text-muted-foreground text-sm">
                 {searchQuery
                   ? "No items match your search"
                   : filterMode === "allowed"
@@ -274,15 +279,16 @@ export function Blocklist({ onBack }: BlocklistPageProps) {
         </Card>
 
         {/* Legend */}
-        <div className="flex gap-6 text-sm text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <Shield className="h-4 w-4 text-destructive" />
+        <div className="flex gap-4 text-xs text-muted-foreground">
+          <div className="flex items-center gap-1.5">
+            <Shield className="h-3 w-3 text-destructive" />
             <span>Blocked</span>
           </div>
-          <div className="flex items-center gap-2">
-            <ShieldOff className="h-4 w-4 text-success" />
+          <div className="flex items-center gap-1.5">
+            <ShieldOff className="h-3 w-3 text-success" />
             <span>Allowed (whitelisted)</span>
           </div>
+        </div>
         </div>
       </main>
     </div>

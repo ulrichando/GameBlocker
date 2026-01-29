@@ -58,19 +58,59 @@
   --color-input: #E5E5E5;
   --color-ring: #06B6D4;
 
-  /* Fluent Design Radii */
+  /* Fluent 2 Design Radii */
+  --radius-none: 0px;
+  --radius-sm: 2px;
+  --radius-md: 4px;
   --radius-lg: 8px;
-  --radius-md: 6px;
-  --radius-sm: 4px;
   --radius-xl: 12px;
 
-  /* Fluent Shadows */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.03);
-  --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.04), 0 4px 8px rgba(0, 0, 0, 0.04);
-  --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.06);
+  /* Fluent 2 Shadows (Rest state) */
+  --shadow-2: 0 1px 2px rgba(0, 0, 0, 0.14), 0 0 2px rgba(0, 0, 0, 0.12);
+  --shadow-4: 0 2px 4px rgba(0, 0, 0, 0.14), 0 0 2px rgba(0, 0, 0, 0.12);
+  --shadow-8: 0 4px 8px rgba(0, 0, 0, 0.14), 0 0 2px rgba(0, 0, 0, 0.12);
+  --shadow-16: 0 8px 16px rgba(0, 0, 0, 0.14), 0 0 2px rgba(0, 0, 0, 0.12);
+  --shadow-28: 0 14px 28px rgba(0, 0, 0, 0.14), 0 0 8px rgba(0, 0, 0, 0.12);
+  --shadow-64: 0 32px 64px rgba(0, 0, 0, 0.24), 0 0 8px rgba(0, 0, 0, 0.2);
+
+  /* Legacy aliases */
+  --shadow-sm: var(--shadow-2);
+  --shadow-md: var(--shadow-4);
+  --shadow-lg: var(--shadow-16);
 
   /* Font */
   --font-sans: 'Segoe UI Variable', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif;
+
+  /* Fluent 2 Typography Scale */
+  --text-caption-2: 10px;
+  --text-caption-1: 12px;
+  --text-body-1: 14px;
+  --text-body-2: 16px;
+  --text-subtitle-2: 18px;
+  --text-subtitle-1: 20px;
+  --text-title-3: 24px;
+  --text-title-2: 28px;
+  --text-title-1: 32px;
+  --text-large-title: 40px;
+  --text-display: 68px;
+
+  /* Fluent 2 Line Heights */
+  --line-height-caption: 1.33;
+  --line-height-body: 1.43;
+  --line-height-subtitle: 1.4;
+  --line-height-title: 1.25;
+
+  /* Fluent 2 Spacing */
+  --space-none: 0;
+  --space-xxs: 2px;
+  --space-xs: 4px;
+  --space-s: 8px;
+  --space-m-nudge: 10px;
+  --space-m: 12px;
+  --space-l: 16px;
+  --space-xl: 20px;
+  --space-xxl: 24px;
+  --space-xxxl: 32px;
 }
 
 /* Dark Theme - Microsoft Fluent Mica Dark */
@@ -95,27 +135,47 @@
   --color-input: #404040;
   --color-ring: #22D3EE;
 
-  /* Dark theme shadows */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
-  --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.2), 0 4px 8px rgba(0, 0, 0, 0.18);
-  --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.2), 0 8px 24px rgba(0, 0, 0, 0.22);
+  /* Dark theme Fluent 2 Shadows (Brand colored ambient) */
+  --shadow-2: 0 1px 2px rgba(0, 0, 0, 0.24), 0 0 2px rgba(0, 0, 0, 0.24);
+  --shadow-4: 0 2px 4px rgba(0, 0, 0, 0.24), 0 0 2px rgba(0, 0, 0, 0.24);
+  --shadow-8: 0 4px 8px rgba(0, 0, 0, 0.24), 0 0 2px rgba(0, 0, 0, 0.24);
+  --shadow-16: 0 8px 16px rgba(0, 0, 0, 0.24), 0 0 2px rgba(0, 0, 0, 0.24);
+  --shadow-28: 0 14px 28px rgba(0, 0, 0, 0.32), 0 0 8px rgba(0, 0, 0, 0.24);
+  --shadow-64: 0 32px 64px rgba(0, 0, 0, 0.40), 0 0 8px rgba(0, 0, 0, 0.32);
+
+  /* Legacy aliases */
+  --shadow-sm: var(--shadow-2);
+  --shadow-md: var(--shadow-4);
+  --shadow-lg: var(--shadow-16);
 }
 
 /* Base Styles */
 @layer base {
   * {
     @apply border-border;
+    box-sizing: border-box;
   }
 
   html {
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    overflow: hidden;
+    height: 100%;
   }
 
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+    overflow: hidden;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  #root {
+    height: 100%;
+    overflow: hidden;
   }
 
   /* Fluent Design focus states */
@@ -155,21 +215,27 @@
   backdrop-filter: blur(20px) saturate(180%);
 }
 
-/* Fluent Card Hover Effect */
+/* Fluent 2 Card Styles */
 .fluent-card {
-  transition: all 0.2s ease;
+  transition: all 0.1s ease-out;
   border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-2);
 }
 
 .fluent-card:hover {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 1px var(--color-primary);
+  box-shadow: var(--shadow-4);
+  border-color: var(--color-border);
 }
 
-/* Custom scrollbar - Fluent style */
+.fluent-card:active {
+  transform: scale(0.98);
+}
+
+/* Custom scrollbar - Fluent style (thin, auto-hiding) */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -177,14 +243,32 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-muted-foreground);
-  border-radius: 4px;
-  opacity: 0.5;
+  background: rgba(128, 128, 128, 0.3);
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-foreground);
-  opacity: 0.8;
+  background: rgba(128, 128, 128, 0.5);
+}
+
+/* Hide scrollbar by default, show on hover */
+.scrollable-content {
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+.scrollable-content:hover {
+  scrollbar-color: rgba(128, 128, 128, 0.3) transparent;
+}
+
+.scrollable-content::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+
+.scrollable-content:hover::-webkit-scrollbar-thumb {
+  background: rgba(128, 128, 128, 0.3);
 }
 
 /* Selection */
@@ -232,11 +316,16 @@
 }
 
 .nav-item {
-  @apply flex items-center gap-3 px-4 py-3 rounded-md transition-colors;
+  @apply flex items-center gap-3 px-4 py-3 transition-colors;
+  border-radius: var(--radius-md);
 }
 
 .nav-item:hover {
   background: var(--color-muted);
+}
+
+.nav-item:active {
+  transform: scale(0.98);
 }
 
 .nav-item.active {
@@ -257,12 +346,94 @@
   @apply bg-destructive text-destructive-foreground;
 }
 
-/* Header style */
+/* Header style - Fluent 2 */
 .app-header {
   @apply sticky top-0 z-50 border-b border-border;
   background: var(--color-card);
+  box-shadow: var(--shadow-2);
 }
 
 .dark .app-header {
   background: var(--color-card);
+}
+
+/* Fluent 2 Button Styles */
+.fluent-button {
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: var(--text-body-1);
+  padding: var(--space-xs) var(--space-m);
+  transition: all 0.1s ease-out;
+}
+
+.fluent-button:hover {
+  opacity: 0.9;
+}
+
+.fluent-button:active {
+  transform: scale(0.98);
+}
+
+/* Fluent 2 Input Styles */
+.fluent-input {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  padding: var(--space-s) var(--space-m);
+  font-size: var(--text-body-1);
+  transition: border-color 0.1s ease-out, box-shadow 0.1s ease-out;
+}
+
+.fluent-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 1px var(--color-primary);
+  outline: none;
+}
+
+/* Fluent 2 Alert/InfoBar Styles */
+.fluent-infobar {
+  border-radius: var(--radius-md);
+  padding: var(--space-m) var(--space-l);
+  border: 1px solid;
+}
+
+/* Fluent 2 Badge Styles */
+.fluent-badge {
+  border-radius: var(--radius-sm);
+  font-size: var(--text-caption-1);
+  font-weight: 600;
+  padding: var(--space-xxs) var(--space-s);
+}
+
+/* Fluent 2 Toggle/Switch Styles */
+.fluent-toggle {
+  border-radius: 999px;
+  transition: background-color 0.1s ease-out;
+}
+
+/* Custom Title Bar - Drag Region */
+.titlebar-drag-region {
+  -webkit-app-region: drag;
+  app-region: drag;
+}
+
+.titlebar-no-drag {
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
+}
+
+/* Title bar header with integrated window controls */
+.app-titlebar {
+  @apply sticky top-0 z-50 border-b border-border flex items-center justify-between;
+  background: var(--color-card);
+  box-shadow: var(--shadow-2);
+  -webkit-app-region: drag;
+  app-region: drag;
+}
+
+.app-titlebar button,
+.app-titlebar a,
+.app-titlebar input,
+.app-titlebar [role="button"] {
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
 }

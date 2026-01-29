@@ -17,6 +17,10 @@ import {
   RefreshCw,
   Plus,
   Trash2,
+  Key,
+  Copy,
+  Link2,
+  QrCode,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCustomerAuth } from "@/hooks/useCustomerAuth";
@@ -35,6 +39,17 @@ interface Installation {
   is_blocked: boolean;
   blocked_reason: string | null;
   last_seen: string;
+  created_at: string;
+}
+
+interface ActivationCode {
+  id: string;
+  code: string;
+  expires_at: string;
+  is_used: boolean;
+  is_expired: boolean;
+  used_at: string | null;
+  used_device_id: string | null;
   created_at: string;
 }
 
@@ -71,6 +86,14 @@ export default function DevicesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  // Activation codes
+  const [activationCodes, setActivationCodes] = useState<ActivationCode[]>([]);
+  const [isGeneratingCode, setIsGeneratingCode] = useState(false);
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [showLinkDevice, setShowLinkDevice] = useState(false);
+  const [linkCode, setLinkCode] = useState("");
+  const [isLinking, setIsLinking] = useState(false);
 
   const fetchDevices = async () => {
     setIsLoading(true);
@@ -110,9 +133,88 @@ export default function DevicesPage() {
     }
   };
 
+  const fetchActivationCodes = async () => {
+    try {
+      const response = await authFetch(`${API_URL}/device/activation-codes`);
+      if (response.ok) {
+        const data = await response.json();
+        setActivationCodes(data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch activation codes:", err);
+    }
+  };
+
+  const generateActivationCode = async () => {
+    setIsGeneratingCode(true);
+    try {
+      const response = await authFetch(`${API_URL}/device/activation-codes`, {
+        method: "POST",
+      });
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.detail || "Failed to generate code");
+      }
+      const newCode = await response.json();
+      setActivationCodes([newCode, ...activationCodes]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to generate code");
+    } finally {
+      setIsGeneratingCode(false);
+    }
+  };
+
+  const deleteActivationCode = async (codeId: string) => {
+    try {
+      const response = await authFetch(`${API_URL}/device/activation-codes/${codeId}`, {
+        method: "DELETE",
+      });
+      if (response.ok) {
+        setActivationCodes(activationCodes.filter((c) => c.id !== codeId));
+      }
+    } catch (err) {
+      console.error("Failed to delete code:", err);
+    }
+  };
+
+  const copyCode = (code: string) => {
+    navigator.clipboard.writeText(code);
+    setCopiedCode(code);
+    setTimeout(() => setCopiedCode(null), 2000);
+  };
+
+  const linkDeviceWithCode = async () => {
+    if (!linkCode.trim()) return;
+
+    setIsLinking(true);
+    try {
+      const response = await authFetch(`${API_URL}/device/link-device`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: linkCode }),
+      });
+
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || data.detail || "Failed to link device");
+      }
+
+      // Refresh devices list
+      await fetchDevices();
+      setLinkCode("");
+      setShowLinkDevice(false);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to link device");
+    } finally {
+      setIsLinking(false);
+    }
+  };
+
   useEffect(() => {
     if (!authLoading) {
       fetchDevices();
+      fetchActivationCodes();
     }
   }, [authLoading]);
 
@@ -281,9 +383,126 @@ export default function DevicesPage() {
           </div>
         )}
 
+        {/* Device Linking Section */}
+        <motion.div
+          className="mt-8 bg-surface-card rounded-xl border border-white/5 p-6"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="font-semibold text-white flex items-center gap-2">
+                <Key className="w-5 h-5 text-primary-400" />
+                Quick Device Linking
+              </h3>
+              <p className="text-sm text-gray-400 mt-1">
+                Generate a code to quickly link a new device without entering your password
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setShowLinkDevice(!showLinkDevice)}
+              >
+                <Link2 className="w-4 h-4" />
+                Link Device
+              </Button>
+              <Button
+                size="sm"
+                onClick={generateActivationCode}
+                disabled={isGeneratingCode}
+              >
+                {isGeneratingCode ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Plus className="w-4 h-4" />
+                )}
+                Generate Code
+              </Button>
+            </div>
+          </div>
+
+          {/* Link device by code input */}
+          {showLinkDevice && (
+            <div className="mb-4 p-4 bg-surface-elevated rounded-lg border border-white/5">
+              <p className="text-sm text-gray-300 mb-3">
+                Enter the code displayed on the device you want to link:
+              </p>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={linkCode}
+                  onChange={(e) => setLinkCode(e.target.value.toUpperCase())}
+                  placeholder="ABC-123"
+                  className="flex-1 px-4 py-2 bg-surface-card border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-primary-500 focus:outline-none text-center font-mono text-lg tracking-wider"
+                  maxLength={7}
+                />
+                <Button onClick={linkDeviceWithCode} disabled={isLinking || !linkCode.trim()}>
+                  {isLinking ? <Loader2 className="w-4 h-4 animate-spin" /> : "Link"}
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Activation codes list */}
+          {activationCodes.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs text-gray-500 uppercase tracking-wide">Active Codes</p>
+              {activationCodes.filter(c => !c.is_used && !c.is_expired).map((code) => (
+                <div
+                  key={code.id}
+                  className="flex items-center justify-between p-3 bg-surface-elevated rounded-lg border border-white/5"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-primary-500/10 flex items-center justify-center">
+                      <QrCode className="w-5 h-5 text-primary-400" />
+                    </div>
+                    <div>
+                      <p className="font-mono text-lg text-white tracking-wider">{code.code}</p>
+                      <p className="text-xs text-gray-500">
+                        Expires: {new Date(code.expires_at).toLocaleTimeString()}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => copyCode(code.code)}
+                      className="text-gray-400 hover:text-white"
+                    >
+                      {copiedCode === code.code ? (
+                        <CheckCircle className="w-4 h-4 text-green-400" />
+                      ) : (
+                        <Copy className="w-4 h-4" />
+                      )}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => deleteActivationCode(code.id)}
+                      className="text-gray-400 hover:text-red-400"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {activationCodes.length === 0 && (
+            <div className="text-center py-4 text-gray-500 text-sm">
+              No active codes. Generate one to quickly link a new device.
+            </div>
+          )}
+        </motion.div>
+
         {/* Info Card */}
         <motion.div
-          className="mt-8 bg-surface-card rounded-xl border border-white/5 p-4"
+          className="mt-6 bg-surface-card rounded-xl border border-white/5 p-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}

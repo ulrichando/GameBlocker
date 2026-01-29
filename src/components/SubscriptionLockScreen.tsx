@@ -4,6 +4,7 @@ import { Shield, Lock, CreditCard, RefreshCw, CheckCircle2 } from "lucide-react"
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { TitleBar } from "@/components/TitleBar";
 import { useLicenseStore } from "@/stores/license-store";
 
 const PLANS = [
@@ -70,16 +71,19 @@ export function SubscriptionLockScreen() {
   })();
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-slate-950 text-gray-900 dark:text-gray-100">
-      {/* Header */}
-      <header className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 shadow-sm">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center gap-3">
-          <Shield className="h-8 w-8 text-blue-600" />
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white">ParentShield</h1>
+    <div className="h-full flex flex-col bg-background overflow-hidden">
+      {/* Header - Fluent 2 Custom Title Bar */}
+      <TitleBar>
+        <div className="flex items-center px-3 gap-2 h-full">
+          <div className="w-5 h-5 bg-gradient-primary rounded flex items-center justify-center">
+            <Shield className="h-3 w-3 text-white" />
+          </div>
+          <span className="text-xs font-semibold">ParentShield</span>
         </div>
-      </header>
+      </TitleBar>
 
-      <main className="max-w-3xl mx-auto px-4 py-8 space-y-6">
+      <main className="flex-1 overflow-y-auto scrollable-content">
+        <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
         {/* Lock Status */}
         <Card className="border-amber-300 bg-amber-50 dark:bg-amber-950 dark:border-amber-700">
           <CardContent className="pt-6">
@@ -167,6 +171,7 @@ export function SubscriptionLockScreen() {
             <RefreshCw className={`h-4 w-4 mr-2 ${checking ? "animate-spin" : ""}`} />
             {checking ? "Checking..." : "Already subscribed? Check again"}
           </Button>
+        </div>
         </div>
       </main>
     </div>

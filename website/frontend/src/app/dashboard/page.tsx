@@ -22,6 +22,7 @@ import {
   CheckCircle,
   AlertTriangle,
   XCircle,
+  Code,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCustomerAuth } from "@/hooks/useCustomerAuth";
@@ -195,6 +196,7 @@ export default function DashboardPage() {
     { icon: Globe, label: "Web Filters", href: "/dashboard/web-filters" },
     { icon: Bell, label: "Alerts", href: "/dashboard/alerts" },
     { icon: CreditCard, label: "Subscription", href: "/dashboard/billing" },
+    { icon: Code, label: "API", href: "/dashboard/api" },
     { icon: Settings, label: "Settings", href: "/dashboard/settings" },
   ];
 

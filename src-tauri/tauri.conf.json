@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "ParentShield",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "identifier": "com.parentshield.app",
   "build": {
     "beforeDevCommand": "npm run dev",
@@ -17,15 +17,28 @@
         "height": 768,
         "minWidth": 800,
         "minHeight": 600,
-        "center": true
+        "center": true,
+        "decorations": false,
+        "transparent": false
       }
     ],
     "trayIcon": {
-      "iconPath": "icons/icon.png",
-      "iconAsTemplate": true
+      "iconPath": "icons/32x32.png",
+      "iconAsTemplate": false
     },
     "security": {
-      "csp": null
+      "csp": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' http://localhost:8000 https://parentshield.app https://*.parentshield.app; font-src 'self' data:; frame-ancestors 'none'"
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "",
+      "endpoints": [
+        "https://parentshield.app/api/updates/{{target}}/{{arch}}/{{current_version}}"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
     }
   },
   "bundle": {

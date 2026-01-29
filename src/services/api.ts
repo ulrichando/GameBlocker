@@ -34,6 +34,15 @@ interface LicenseCheckResponse {
   upgrade_url: string | null;
 }
 
+interface ActivationCodeResponse {
+  success: boolean;
+  access_token?: string;
+  refresh_token?: string;
+  user_email?: string;
+  plan?: string;
+  error?: string;
+}
+
 // Generate a unique device ID based on machine characteristics
 function getDeviceId(): string {
   // Use a combination of factors to create a unique ID
@@ -158,7 +167,7 @@ class ApiService {
         device_name: `${getPlatform().toUpperCase()} Device`,
         platform: getPlatform(),
         os_version: getOsVersion(),
-        app_version: "0.1.0",
+        app_version: "0.2.0",
         download_token: localStorage.getItem("download_token") || undefined,
       };
 
@@ -208,7 +217,7 @@ class ApiService {
         },
         body: JSON.stringify({
           device_id: this.deviceId,
-          app_version: "0.1.0",
+          app_version: "0.2.0",
         }),
       });
 
@@ -378,6 +387,125 @@ class ApiService {
     } catch (error) {
       console.error("Change password error:", error);
       return { success: false, error: "Connection failed. Please try again." };
+    }
+  }
+
+  // Redeem an activation code to link device to account
+  async redeemActivationCode(code: string): Promise<ActivationCodeResponse> {
+    try {
+      const response = await fetch(`${API_URL}/api/v1/app/activate`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          activation_code: code.toUpperCase().replace(/[^A-Z0-9]/g, ""),
+          device_id: this.deviceId,
+          device_name: `${getPlatform().toUpperCase()} Device`,
+          platform: getPlatform(),
+          os_version: getOsVersion(),
+          app_version: "0.2.0",
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        return {
+          success: false,
+          error: data.detail || data.message || "Invalid activation code",
+        };
+      }
+
+      const data = await response.json();
+
+      if (data.access_token) {
+        // Save tokens and set up session
+        this.saveTokens(data.access_token, data.refresh_token);
+        await this.registerInstallation();
+        this.startHeartbeat();
+      }
+
+      return {
+        success: true,
+        access_token: data.access_token,
+        refresh_token: data.refresh_token,
+        user_email: data.user_email,
+        plan: data.plan,
+      };
+    } catch (error) {
+      console.error("Activation code error:", error);
+      return {
+        success: false,
+        error: "Connection failed. Please check your internet and try again.",
+      };
+    }
+  }
+
+  // Generate a device linking code for manual linking
+  async generateLinkingCode(): Promise<{ code: string; expires_in: number } | null> {
+    try {
+      const response = await fetch(`${API_URL}/api/v1/app/device/link-code`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          device_id: this.deviceId,
+          device_name: `${getPlatform().toUpperCase()} Device`,
+          platform: getPlatform(),
+        }),
+      });
+
+      if (!response.ok) {
+        console.error("Failed to generate linking code");
+        return null;
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Generate linking code error:", error);
+      return null;
+    }
+  }
+
+  // Check if device has been linked (poll after showing linking code)
+  async checkDeviceLinkStatus(): Promise<ActivationCodeResponse> {
+    try {
+      const response = await fetch(`${API_URL}/api/v1/app/device/link-status`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          device_id: this.deviceId,
+        }),
+      });
+
+      if (!response.ok) {
+        return { success: false };
+      }
+
+      const data = await response.json();
+
+      if (data.linked && data.access_token) {
+        // Device was linked - save tokens
+        this.saveTokens(data.access_token, data.refresh_token);
+        await this.registerInstallation();
+        this.startHeartbeat();
+
+        return {
+          success: true,
+          access_token: data.access_token,
+          refresh_token: data.refresh_token,
+          user_email: data.user_email,
+          plan: data.plan,
+        };
+      }
+
+      return { success: false };
+    } catch (error) {
+      console.error("Check link status error:", error);
+      return { success: false };
     }
   }
 

@@ -18,6 +18,7 @@ import {
   Menu,
   X,
   CreditCard,
+  Code,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCustomerAuth } from "@/hooks/useCustomerAuth";
@@ -35,6 +36,7 @@ const navItems = [
   { icon: Globe, label: "Web Filters", href: "/dashboard/web-filters" },
   { icon: Bell, label: "Alerts", href: "/dashboard/alerts" },
   { icon: CreditCard, label: "Subscription", href: "/dashboard/billing" },
+  { icon: Code, label: "API", href: "/dashboard/api" },
   { icon: Settings, label: "Settings", href: "/dashboard/settings" },
 ];
 

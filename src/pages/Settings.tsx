@@ -1,16 +1,18 @@
 import { useState, useEffect } from "react";
-import { ArrowLeft, Key, Eye, EyeOff, Copy, Check, Server, Play, Square, Trash2, Download, Globe, LogIn, LogOut, CreditCard, ExternalLink } from "lucide-react";
+import { ArrowLeft, Key, Eye, EyeOff, Copy, Check, Server, Play, Square, Trash2, Download, Globe, LogIn, LogOut, CreditCard, ExternalLink, Sun, Moon, Monitor } from "lucide-react";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { TitleBar } from "@/components/TitleBar";
 import { useAuthStore } from "@/stores/auth-store";
 import { useDaemonStore } from "@/stores/daemon-store";
 import { useLicenseStore } from "@/stores/license-store";
 import { invoke } from "@tauri-apps/api/core";
 import { apiService } from "@/services/api";
+import { useThemeStore } from "@/stores/theme-store";
 
 interface SettingsPageProps {
   onBack: () => void;
@@ -64,6 +66,7 @@ export function Settings({ onBack }: SettingsPageProps) {
     daysRemaining,
     upgradeUrl,
   } = useLicenseStore();
+  const { theme, setTheme } = useThemeStore();
 
   useEffect(() => {
     fetchDaemonStatus();
@@ -188,30 +191,28 @@ export function Settings({ onBack }: SettingsPageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="app-header">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={onBack}>
-            <ArrowLeft className="h-5 w-5" />
+    <div className="h-full flex flex-col bg-background overflow-hidden">
+      {/* Header - Fluent 2 Custom Title Bar */}
+      <TitleBar>
+        <div className="flex items-center px-2 gap-1 h-full">
+          <Button variant="ghost" size="icon" onClick={onBack} className="h-6 w-6 rounded hover:bg-foreground/10">
+            <ArrowLeft className="h-3.5 w-3.5" />
           </Button>
-          <div>
-            <h1 className="text-xl font-semibold text-foreground">Settings</h1>
-            <p className="text-sm text-muted-foreground">App preferences</p>
-          </div>
+          <span className="text-xs font-semibold">Settings</span>
         </div>
-      </header>
+      </TitleBar>
 
-      <main className="max-w-5xl mx-auto px-4 py-6 space-y-6">
+      <main className="flex-1 overflow-y-auto scrollable-content">
+        <div className="max-w-5xl mx-auto px-4 py-4 space-y-3">
         {/* Password Section */}
         <Card className="fluent-card">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Key className="h-5 w-5 text-primary" />
+          <CardHeader className="pb-2 pt-4 px-4">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <Key className="h-4 w-4 text-primary" />
               Security
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-3 px-4 pb-4">
             {!showChangePassword ? (
               <Button variant="outline" onClick={() => setShowChangePassword(true)}>
                 Change Password
@@ -281,16 +282,16 @@ export function Settings({ onBack }: SettingsPageProps) {
 
         {/* Website Account Section */}
         <Card className="fluent-card">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Globe className="h-5 w-5 text-primary" />
+          <CardHeader className="pb-2 pt-4 px-4">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <Globe className="h-4 w-4 text-primary" />
               ParentShield Account
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-xs">
               Connect to your ParentShield subscription account
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-3 px-4 pb-4">
             {websiteLoggedIn ? (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -474,13 +475,13 @@ export function Settings({ onBack }: SettingsPageProps) {
 
         {/* Master Password Section */}
         <Card className="fluent-card">
-          <CardHeader>
-            <CardTitle className="text-lg">Recovery Password</CardTitle>
-            <CardDescription>
+          <CardHeader className="pb-2 pt-4 px-4">
+            <CardTitle className="text-sm font-semibold">Recovery Password</CardTitle>
+            <CardDescription className="text-xs">
               View your master recovery password (requires verification)
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-3 px-4 pb-4">
             {!showMasterPassword ? (
               <Button variant="outline" onClick={() => setShowMasterPassword(true)}>
                 View Recovery Password
@@ -542,16 +543,16 @@ export function Settings({ onBack }: SettingsPageProps) {
 
         {/* Daemon/Service Section */}
         <Card className="fluent-card">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Server className="h-5 w-5 text-secondary" />
+          <CardHeader className="pb-2 pt-4 px-4">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <Server className="h-4 w-4 text-secondary" />
               Background Service
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-xs">
               The background service ensures blocking works even when the app is closed
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-3 px-4 pb-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-medium">Service Status</p>
@@ -616,16 +617,61 @@ export function Settings({ onBack }: SettingsPageProps) {
           </CardContent>
         </Card>
 
+        {/* Appearance Section */}
+        <Card className="fluent-card">
+          <CardHeader className="pb-2 pt-4 px-4">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <Sun className="h-4 w-4 text-primary" />
+              Appearance
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="px-4 pb-4">
+            <div className="flex flex-col gap-2">
+              <Label className="text-xs text-muted-foreground">Theme</Label>
+              <div className="flex gap-2">
+                <Button
+                  variant={theme === "light" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setTheme("light")}
+                  className="flex-1 h-8 text-xs"
+                >
+                  <Sun className="h-3.5 w-3.5 mr-1.5" />
+                  Light
+                </Button>
+                <Button
+                  variant={theme === "dark" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setTheme("dark")}
+                  className="flex-1 h-8 text-xs"
+                >
+                  <Moon className="h-3.5 w-3.5 mr-1.5" />
+                  Dark
+                </Button>
+                <Button
+                  variant={theme === "system" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setTheme("system")}
+                  className="flex-1 h-8 text-xs"
+                >
+                  <Monitor className="h-3.5 w-3.5 mr-1.5" />
+                  System
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* About Section */}
         <Card className="fluent-card">
-          <CardHeader>
-            <CardTitle className="text-lg">About</CardTitle>
+          <CardHeader className="pb-2 pt-4 px-4">
+            <CardTitle className="text-sm font-semibold">About</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2 text-sm text-muted-foreground">
-            <p><strong>ParentShield</strong> v0.1.0</p>
+          <CardContent className="space-y-1 text-xs text-muted-foreground px-4 pb-4">
+            <p><strong>ParentShield</strong> v0.2.0</p>
             <p>Cross-platform parental control software for blocking games and AI services.</p>
           </CardContent>
         </Card>
+        </div>
       </main>
     </div>
   );

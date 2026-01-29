@@ -4,6 +4,7 @@ from .transaction import Transaction, TransactionStatus
 from .device import Download, Installation, Platform, DownloadSource, InstallationStatus
 from .api_key import APIKey
 from .webhook import Webhook, WebhookDelivery, WebhookEventType
+from .activation_code import ActivationCode, DeviceLinkingCode
 from .parental_controls import (
     ScreenTimeConfig,
     BlockedApp,
@@ -49,4 +50,7 @@ __all__ = [
     "Webhook",
     "WebhookDelivery",
     "WebhookEventType",
+    # Activation codes
+    "ActivationCode",
+    "DeviceLinkingCode",
 ]

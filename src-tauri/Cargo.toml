@@ -1,6 +1,6 @@
 [package]
 name = "parentshield"
-version = "0.1.0"
+version = "0.2.0"
 description = "Cross-platform parental control software for blocking games and AI services"
 authors = ["ParentShield"]
 edition = "2021"

@@ -1,6 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Request, Form
-from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.templating import Jinja2Templates
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.database import get_db
@@ -14,7 +12,6 @@ from app.schemas.auth import (
 from app.services.auth_service import AuthService
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
-templates = Jinja2Templates(directory="templates")
 
 
 # ============================================================================
@@ -125,45 +122,3 @@ async def reset_password(
             detail="Invalid or expired reset token",
         )
     return {"message": "Password reset successfully"}
-
-
-# ============================================================================
-# PAGE ENDPOINTS
-# ============================================================================
-
-@router.get("/login", response_class=HTMLResponse)
-async def login_page(request: Request):
-    """Login page."""
-    return templates.TemplateResponse("auth/login.html", {"request": request})
-
-
-@router.get("/register", response_class=HTMLResponse)
-async def register_page(request: Request):
-    """Registration page."""
-    return templates.TemplateResponse("auth/register.html", {"request": request})
-
-
-@router.get("/forgot-password", response_class=HTMLResponse)
-async def forgot_password_page(request: Request):
-    """Forgot password page."""
-    return templates.TemplateResponse("auth/forgot_password.html", {"request": request})
-
-
-@router.get("/reset-password", response_class=HTMLResponse)
-async def reset_password_page(request: Request, token: str):
-    """Reset password page."""
-    return templates.TemplateResponse("auth/reset_password.html", {"request": request, "token": token})
-
-
-@router.get("/verify-email", response_class=HTMLResponse)
-async def verify_email_page(
-    request: Request,
-    token: str,
-    db: AsyncSession = Depends(get_db),
-):
-    """Verify email page."""
-    success = await AuthService.verify_email(db, token)
-    return templates.TemplateResponse(
-        "auth/verify_email.html",
-        {"request": request, "success": success},
-    )

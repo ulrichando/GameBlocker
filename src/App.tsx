@@ -4,6 +4,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { useAuthStore } from "@/stores/auth-store";
 import { useBlockingStore } from "@/stores/blocking-store";
 import { useLicenseStore } from "@/stores/license-store";
+import "@/stores/theme-store"; // Initialize theme on app load
 import { FirstRun } from "@/pages/FirstRun";
 import { LockScreen } from "@/pages/LockScreen";
 import { SubscriptionLockScreen } from "@/components/SubscriptionLockScreen";
@@ -11,11 +12,13 @@ import { Dashboard } from "@/pages/Dashboard";
 import { Schedule } from "@/pages/Schedule";
 import { Blocklist } from "@/pages/Blocklist";
 import { Settings } from "@/pages/Settings";
+import { Activity } from "@/pages/Activity";
+import { Alerts } from "@/pages/Alerts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { apiService } from "@/services/api";
 
-type Page = "dashboard" | "schedule" | "blocklist" | "settings";
+type Page = "dashboard" | "schedule" | "blocklist" | "settings" | "activity" | "alerts";
 
 function App() {
   const { isConfigured, isAuthenticated, isLoading, checkAuthStatus } = useAuthStore();
@@ -179,7 +182,7 @@ function App() {
     return (
       <>
         {quitModal}
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-900">
+        <div className="h-full flex items-center justify-center bg-background">
           <div className="animate-pulse text-muted-foreground">Loading...</div>
         </div>
       </>
@@ -217,6 +220,10 @@ function App() {
       return <>{quitModal}<Blocklist onBack={handleBack} /></>;
     case "settings":
       return <>{quitModal}<Settings onBack={handleBack} /></>;
+    case "activity":
+      return <>{quitModal}<Activity onBack={handleBack} /></>;
+    case "alerts":
+      return <>{quitModal}<Alerts onBack={handleBack} /></>;
     default:
       return <>{quitModal}<Dashboard onNavigate={handleNavigate} /></>;
   }

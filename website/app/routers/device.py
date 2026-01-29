@@ -16,8 +16,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.database import get_db
 from app.core.dependencies import CurrentUser, OptionalUser, DbSession
-from app.models import User, Download, Installation, Platform, DownloadSource, InstallationStatus
+from app.models import User, Download, Installation, Platform, DownloadSource, InstallationStatus, ActivationCode, DeviceLinkingCode
 from app.services.user_service import UserService
+from app.core.security import create_access_token, create_refresh_token
 
 # Base directory for downloads
 DOWNLOADS_DIR = Path(__file__).resolve().parent.parent.parent / "downloads"
@@ -80,7 +81,7 @@ async def get_available_downloads():
     Checks the filesystem to see which builds are actually available.
     Used by frontend to show/hide download options.
     """
-    version = "0.1.0"
+    version = "0.2.0"
 
     # Define all possible downloads
     downloads = {
@@ -469,3 +470,290 @@ async def get_installation_status(
         "blocked_reason": installation.blocked_reason,
         "status": installation.status.value,
     }
+
+
+# ============================================================================
+# ACTIVATION CODES
+# ============================================================================
+
+def generate_activation_code() -> str:
+    """Generate a random 6-character activation code in ABC-123 format."""
+    import string
+    letters = ''.join(secrets.choice(string.ascii_uppercase) for _ in range(3))
+    numbers = ''.join(secrets.choice(string.digits) for _ in range(3))
+    return f"{letters}-{numbers}"
+
+
+class ActivationCodeResponse(BaseModel):
+    id: str
+    code: str
+    expires_at: str
+    is_used: bool
+    used_at: str | None = None
+    used_device_id: str | None = None
+    created_at: str
+
+
+@router.post("/activation-codes", response_model=ActivationCodeResponse)
+async def create_activation_code(
+    current_user: CurrentUser,
+    db: DbSession,
+):
+    """Generate a new activation code for linking devices.
+
+    The code can be entered in the desktop/mobile app to link
+    the device to the user's account without entering credentials.
+    Code expires in 15 minutes.
+    """
+    from datetime import timedelta
+
+    # Generate unique code
+    max_attempts = 10
+    code = None
+    for _ in range(max_attempts):
+        candidate = generate_activation_code()
+        # Check if code already exists
+        existing = await db.execute(
+            select(ActivationCode).where(ActivationCode.code == candidate)
+        )
+        if not existing.scalar_one_or_none():
+            code = candidate
+            break
+
+    if not code:
+        raise HTTPException(status_code=500, detail="Failed to generate unique code")
+
+    # Create activation code with 15 minute expiry
+    activation_code = ActivationCode(
+        user_id=current_user.id,
+        code=code,
+        expires_at=datetime.utcnow() + timedelta(minutes=15),
+    )
+
+    db.add(activation_code)
+    await db.commit()
+    await db.refresh(activation_code)
+
+    return ActivationCodeResponse(
+        id=str(activation_code.id),
+        code=activation_code.code,
+        expires_at=activation_code.expires_at.isoformat(),
+        is_used=activation_code.is_used,
+        used_at=activation_code.used_at.isoformat() if activation_code.used_at else None,
+        used_device_id=activation_code.used_device_id,
+        created_at=activation_code.created_at.isoformat(),
+    )
+
+
+@router.get("/activation-codes")
+async def list_activation_codes(
+    current_user: CurrentUser,
+    db: DbSession,
+):
+    """List all activation codes for the current user."""
+    result = await db.execute(
+        select(ActivationCode)
+        .where(ActivationCode.user_id == current_user.id)
+        .order_by(ActivationCode.created_at.desc())
+    )
+    codes = result.scalars().all()
+
+    return [
+        {
+            "id": str(c.id),
+            "code": c.code,
+            "expires_at": c.expires_at.isoformat(),
+            "is_used": c.is_used,
+            "is_expired": c.expires_at < datetime.utcnow(),
+            "used_at": c.used_at.isoformat() if c.used_at else None,
+            "used_device_id": c.used_device_id,
+            "created_at": c.created_at.isoformat(),
+        }
+        for c in codes
+    ]
+
+
+@router.delete("/activation-codes/{code_id}")
+async def delete_activation_code(
+    code_id: str,
+    current_user: CurrentUser,
+    db: DbSession,
+):
+    """Delete/revoke an activation code."""
+    try:
+        code_uuid = UUID(code_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid code ID")
+
+    result = await db.execute(
+        select(ActivationCode).where(
+            ActivationCode.id == code_uuid,
+            ActivationCode.user_id == current_user.id,
+        )
+    )
+    code = result.scalar_one_or_none()
+
+    if not code:
+        raise HTTPException(status_code=404, detail="Activation code not found")
+
+    await db.delete(code)
+    await db.commit()
+
+    return {"status": "deleted", "message": "Activation code revoked"}
+
+
+# ============================================================================
+# DEVICE LINKING (reverse flow - code displayed on app, entered on website)
+# ============================================================================
+
+class LinkDeviceRequest(BaseModel):
+    code: str  # The code displayed on the device
+
+
+class LinkDeviceResponse(BaseModel):
+    success: bool
+    device_id: str | None = None
+    device_name: str | None = None
+    platform: str | None = None
+    message: str | None = None
+    error: str | None = None
+
+
+@router.post("/link-device", response_model=LinkDeviceResponse)
+async def link_device_with_code(
+    data: LinkDeviceRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+):
+    """Link a device to the user's account using a code displayed on the device.
+
+    The app generates a linking code and displays it. The user enters this code
+    on the website to link the device to their account.
+    """
+    from datetime import timedelta
+
+    # Normalize the code
+    code = data.code.upper().replace("-", "").replace(" ", "")
+    if len(code) == 6:
+        code = f"{code[:3]}-{code[3:]}"
+    else:
+        return LinkDeviceResponse(
+            success=False,
+            error="Invalid code format. Expected 6 characters (ABC-123)."
+        )
+
+    # Find the linking code
+    result = await db.execute(
+        select(DeviceLinkingCode).where(DeviceLinkingCode.code == code)
+    )
+    linking_code = result.scalar_one_or_none()
+
+    if not linking_code:
+        return LinkDeviceResponse(
+            success=False,
+            error="Invalid code. Please check and try again."
+        )
+
+    # Check if expired
+    if linking_code.expires_at < datetime.utcnow():
+        return LinkDeviceResponse(
+            success=False,
+            error="This code has expired. Please generate a new one on the device."
+        )
+
+    # Check if already linked
+    if linking_code.is_linked:
+        return LinkDeviceResponse(
+            success=False,
+            error="This code has already been used."
+        )
+
+    # Create or update installation for this device
+    install_result = await db.execute(
+        select(Installation).where(Installation.device_id == linking_code.device_id)
+    )
+    installation = install_result.scalar_one_or_none()
+
+    platform = Platform.LINUX  # Default
+    if linking_code.platform:
+        try:
+            platform = Platform(linking_code.platform.lower())
+        except ValueError:
+            pass
+
+    if installation:
+        # Update existing installation
+        installation.user_id = current_user.id
+        installation.device_name = linking_code.device_name
+        installation.platform = platform
+        installation.status = InstallationStatus.ACTIVE
+        installation.last_seen = datetime.utcnow()
+    else:
+        # Create new installation
+        installation = Installation(
+            user_id=current_user.id,
+            device_id=linking_code.device_id,
+            device_name=linking_code.device_name,
+            platform=platform,
+            app_version="unknown",
+            status=InstallationStatus.ACTIVE,
+        )
+        db.add(installation)
+
+    # Generate tokens for the device
+    access_token = create_access_token(
+        data={"sub": str(current_user.id), "device_id": linking_code.device_id},
+        expires_delta=timedelta(days=7)
+    )
+    refresh_token = create_refresh_token(
+        data={"sub": str(current_user.id), "device_id": linking_code.device_id}
+    )
+
+    # Mark the linking code as linked and store tokens
+    linking_code.is_linked = True
+    linking_code.linked_at = datetime.utcnow()
+    linking_code.linked_user_id = current_user.id
+    linking_code.access_token = access_token
+    linking_code.refresh_token = refresh_token
+
+    await db.commit()
+
+    # Activate the user's trial if applicable
+    await UserService.activate_trial(db, current_user.id)
+
+    return LinkDeviceResponse(
+        success=True,
+        device_id=linking_code.device_id,
+        device_name=linking_code.device_name,
+        platform=linking_code.platform,
+        message="Device linked successfully! The app will automatically sign in."
+    )
+
+
+@router.get("/pending-links")
+async def get_pending_link_requests(
+    current_user: CurrentUser,
+    db: DbSession,
+):
+    """Get pending device link requests (codes that haven't been used yet)."""
+    # This shows devices that generated link codes but haven't been linked
+    # Not strictly necessary but useful for dashboard
+    result = await db.execute(
+        select(DeviceLinkingCode).where(
+            DeviceLinkingCode.is_linked == False,
+            DeviceLinkingCode.expires_at > datetime.utcnow()
+        ).order_by(DeviceLinkingCode.created_at.desc())
+    )
+    codes = result.scalars().all()
+
+    return [
+        {
+            "code": c.code,
+            "device_id": c.device_id,
+            "device_name": c.device_name,
+            "platform": c.platform,
+            "expires_at": c.expires_at.isoformat(),
+            "created_at": c.created_at.isoformat(),
+        }
+        for c in codes
+    ]

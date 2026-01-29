@@ -1,16 +1,13 @@
 """
-Public routes - Landing page, pricing, downloads, etc.
-These routes are accessible without authentication.
+Public API routes - Downloads, Stripe webhooks, health checks.
 """
 
 import os
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Optional
 
 from fastapi import APIRouter, Request, HTTPException, BackgroundTasks, Depends
-from fastapi.responses import HTMLResponse, FileResponse
-from fastapi.templating import Jinja2Templates
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -31,7 +28,9 @@ except ImportError:
     STRIPE_ENABLED = False
 
 router = APIRouter(tags=["Public"])
-templates = Jinja2Templates(directory="templates")
+
+# Frontend URL for Stripe redirects
+FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:3000")
 
 # Download statistics (in production, use a database)
 download_stats = {
@@ -120,32 +119,6 @@ class ContactForm(BaseModel):
 
 
 # ============================================================================
-# LANDING PAGE
-# ============================================================================
-
-@router.get("/", response_class=HTMLResponse)
-async def home(request: Request):
-    """Landing page with hero, features, pricing, and downloads"""
-    return templates.TemplateResponse("index.html", {
-        "request": request,
-        "pricing": PRICING,
-        "downloads": DOWNLOAD_FILES,
-        "stats": download_stats,
-        "stripe_key": settings.stripe_publishable_key
-    })
-
-
-@router.get("/pricing", response_class=HTMLResponse)
-async def pricing_page(request: Request):
-    """Dedicated pricing page"""
-    return templates.TemplateResponse("pricing.html", {
-        "request": request,
-        "pricing": PRICING,
-        "stripe_key": settings.stripe_publishable_key
-    })
-
-
-# ============================================================================
 # PUBLIC DOWNLOADS
 # ============================================================================
 
@@ -207,7 +180,7 @@ class CheckoutRequest(BaseModel):
 async def create_checkout_session(request: Request):
     """Create Stripe checkout session for subscription"""
     if not STRIPE_ENABLED or stripe is None:
-        return {"url": str(request.base_url) + "success?demo=true"}
+        return {"url": f"{FRONTEND_URL}/success?demo=true"}
 
     try:
         data = await request.json()
@@ -238,8 +211,8 @@ async def create_checkout_session(request: Request):
                 "quantity": 1
             }],
             mode="subscription",
-            success_url=str(request.base_url) + f"success?session_id={{CHECKOUT_SESSION_ID}}&plan={plan}",
-            cancel_url=str(request.base_url) + "pricing",
+            success_url=f"{FRONTEND_URL}/success?session_id={{CHECKOUT_SESSION_ID}}&plan={plan}",
+            cancel_url=f"{FRONTEND_URL}/pricing",
             customer_email=email,
             metadata={
                 "product": f"ParentShield {plan_config['name']}",
@@ -251,15 +224,6 @@ async def create_checkout_session(request: Request):
 
     except stripe.error.StripeError as e:
         raise HTTPException(status_code=400, detail=str(e))
-
-
-@router.get("/success", response_class=HTMLResponse)
-async def success_page(request: Request, session_id: Optional[str] = None):
-    """Subscription success page"""
-    return templates.TemplateResponse("success.html", {
-        "request": request,
-        "session_id": session_id
-    })
 
 
 @router.post("/webhook")
@@ -408,7 +372,7 @@ async def stripe_webhook(request: Request, db: AsyncSession = Depends(get_db)):
 
 
 # ============================================================================
-# CONTACT & SUPPORT
+# CONTACT FORM API
 # ============================================================================
 
 @router.post("/api/contact")
@@ -416,24 +380,6 @@ async def contact(form: ContactForm, background_tasks: BackgroundTasks):
     """Handle contact form submissions"""
     print(f"Contact form: {form.model_dump()}")
     return {"status": "success", "message": "We'll get back to you soon!"}
-
-
-@router.get("/support", response_class=HTMLResponse)
-async def support_page(request: Request):
-    """Support page"""
-    return templates.TemplateResponse("support.html", {"request": request})
-
-
-@router.get("/privacy", response_class=HTMLResponse)
-async def privacy_page(request: Request):
-    """Privacy policy page"""
-    return templates.TemplateResponse("privacy.html", {"request": request})
-
-
-@router.get("/terms", response_class=HTMLResponse)
-async def terms_page(request: Request):
-    """Terms of service page"""
-    return templates.TemplateResponse("terms.html", {"request": request})
 
 
 # ============================================================================

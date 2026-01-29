@@ -15,8 +15,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.database import get_db
 from app.models.user import User
 from app.models.subscription import Subscription, SubscriptionStatus, PlanType, PLAN_CONFIG
-from app.models.device import Installation
+from app.models.device import Installation, Platform
 from app.models.parental_controls import Alert, AlertType, AlertSeverity
+from app.models.activation_code import ActivationCode, DeviceLinkingCode
 from app.core.security import decode_token, create_access_token
 from app.core.dependencies import get_current_user
 from app.services.user_service import UserService
@@ -99,6 +100,47 @@ class CreateAlertResponse(BaseModel):
     success: bool
     alert_id: str | None = None
     message: str | None = None
+
+
+class ActivateRequest(BaseModel):
+    activation_code: str  # Format: ABC-123 or ABC123
+    device_id: str
+    device_name: str | None = None
+    platform: str  # windows, macos, linux
+    os_version: str | None = None
+    app_version: str
+
+
+class ActivateResponse(BaseModel):
+    success: bool
+    access_token: str | None = None
+    refresh_token: str | None = None
+    user_email: str | None = None
+    plan: str | None = None
+    error: str | None = None
+
+
+class DeviceLinkCodeRequest(BaseModel):
+    device_id: str
+    device_name: str | None = None
+    platform: str | None = None
+
+
+class DeviceLinkCodeResponse(BaseModel):
+    code: str
+    expires_in: int  # seconds
+
+
+class DeviceLinkStatusRequest(BaseModel):
+    device_id: str
+
+
+class DeviceLinkStatusResponse(BaseModel):
+    linked: bool
+    access_token: str | None = None
+    refresh_token: str | None = None
+    user_email: str | None = None
+    plan: str | None = None
 
 
 # ============================================================================
@@ -682,6 +724,267 @@ async def create_alert(
         success=True,
         alert_id=str(alert.id),
         message="Alert created successfully."
+    )
+
+
+# ============================================================================
+# ACTIVATION CODES
+# ============================================================================
+
+@router.post("/activate", response_model=ActivateResponse)
+async def activate_with_code(
+    request: ActivateRequest,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Activate a device using an activation code generated from the website.
+    This allows users to link devices without entering their credentials.
+    """
+    import secrets
+    import string
+
+    # Normalize the code (remove dashes, uppercase)
+    code = request.activation_code.upper().replace("-", "").replace(" ", "")
+    # Re-format to ABC-123
+    if len(code) == 6:
+        code = f"{code[:3]}-{code[3:]}"
+    else:
+        return ActivateResponse(
+            success=False,
+            error="Invalid activation code format. Expected 6 characters (ABC-123)."
+        )
+
+    # Find the activation code
+    result = await db.execute(
+        select(ActivationCode).where(ActivationCode.code == code)
+    )
+    activation_code = result.scalar_one_or_none()
+
+    if not activation_code:
+        return ActivateResponse(
+            success=False,
+            error="Invalid activation code. Please check and try again."
+        )
+
+    # Check if code is expired
+    if activation_code.expires_at < datetime.utcnow():
+        return ActivateResponse(
+            success=False,
+            error="This activation code has expired. Please generate a new one."
+        )
+
+    # Check if code is already used
+    if activation_code.is_used:
+        return ActivateResponse(
+            success=False,
+            error="This activation code has already been used."
+        )
+
+    # Get the user
+    user_result = await db.execute(
+        select(User).where(User.id == activation_code.user_id)
+    )
+    user = user_result.scalar_one_or_none()
+
+    if not user or not user.is_active:
+        return ActivateResponse(
+            success=False,
+            error="Account not found or suspended."
+        )
+
+    # Mark the code as used
+    activation_code.is_used = True
+    activation_code.used_at = datetime.utcnow()
+    activation_code.used_device_id = request.device_id
+
+    # Create or update installation
+    try:
+        platform = Platform(request.platform.lower())
+    except ValueError:
+        platform = Platform.LINUX  # Default
+
+    # Check if device already exists
+    install_result = await db.execute(
+        select(Installation).where(Installation.device_id == request.device_id)
+    )
+    installation = install_result.scalar_one_or_none()
+
+    from app.models.device import InstallationStatus
+
+    if installation:
+        # Update existing installation
+        installation.user_id = user.id
+        installation.platform = platform
+        installation.os_version = request.os_version
+        installation.app_version = request.app_version
+        installation.device_name = request.device_name
+        installation.status = InstallationStatus.ACTIVE
+        installation.last_seen = datetime.utcnow()
+    else:
+        # Create new installation
+        installation = Installation(
+            user_id=user.id,
+            device_id=request.device_id,
+            device_name=request.device_name,
+            platform=platform,
+            os_version=request.os_version,
+            app_version=request.app_version,
+            status=InstallationStatus.ACTIVE,
+        )
+        db.add(installation)
+
+    # Get user's subscription and plan info
+    sub_result = await db.execute(
+        select(Subscription).where(
+            Subscription.user_id == user.id
+        ).order_by(Subscription.created_at.desc())
+    )
+    subscription = sub_result.scalar_one_or_none()
+
+    plan = "none"
+    if subscription:
+        plan = subscription.plan_name
+
+    # Create tokens for the device
+    access_token = create_access_token(
+        data={"sub": str(user.id), "device_id": request.device_id},
+        expires_delta=timedelta(days=7)
+    )
+
+    from app.core.security import create_refresh_token
+    refresh_token = create_refresh_token(
+        data={"sub": str(user.id), "device_id": request.device_id}
+    )
+
+    await db.commit()
+
+    return ActivateResponse(
+        success=True,
+        access_token=access_token,
+        refresh_token=refresh_token,
+        user_email=user.email,
+        plan=plan,
+    )
+
+
+@router.post("/device/link-code", response_model=DeviceLinkCodeResponse)
+async def generate_device_link_code(
+    request: DeviceLinkCodeRequest,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Generate a linking code to display on the device.
+    The user enters this code on the website to link the device to their account.
+    This is the reverse flow of activation codes.
+    """
+    import secrets
+    import string
+
+    def generate_code() -> str:
+        """Generate a random 6-character code in ABC-123 format."""
+        letters = ''.join(secrets.choice(string.ascii_uppercase) for _ in range(3))
+        numbers = ''.join(secrets.choice(string.digits) for _ in range(3))
+        return f"{letters}-{numbers}"
+
+    # Check if there's already an active linking code for this device
+    result = await db.execute(
+        select(DeviceLinkingCode).where(
+            DeviceLinkingCode.device_id == request.device_id,
+            DeviceLinkingCode.is_linked == False,
+            DeviceLinkingCode.expires_at > datetime.utcnow()
+        )
+    )
+    existing = result.scalar_one_or_none()
+
+    if existing:
+        # Return existing code
+        expires_in = int((existing.expires_at - datetime.utcnow()).total_seconds())
+        return DeviceLinkCodeResponse(
+            code=existing.code,
+            expires_in=expires_in
+        )
+
+    # Generate unique code
+    max_attempts = 10
+    code = None
+    for _ in range(max_attempts):
+        candidate = generate_code()
+        check_result = await db.execute(
+            select(DeviceLinkingCode).where(DeviceLinkingCode.code == candidate)
+        )
+        if not check_result.scalar_one_or_none():
+            code = candidate
+            break
+
+    if not code:
+        raise HTTPException(status_code=500, detail="Failed to generate unique code")
+
+    # Create linking code with 15 minute expiry
+    expires_in = 15 * 60  # 15 minutes in seconds
+    linking_code = DeviceLinkingCode(
+        device_id=request.device_id,
+        device_name=request.device_name,
+        platform=request.platform,
+        code=code,
+        expires_at=datetime.utcnow() + timedelta(seconds=expires_in),
+    )
+
+    db.add(linking_code)
+    await db.commit()
+
+    return DeviceLinkCodeResponse(
+        code=code,
+        expires_in=expires_in
+    )
+
+
+@router.post("/device/link-status", response_model=DeviceLinkStatusResponse)
+async def check_device_link_status(
+    request: DeviceLinkStatusRequest,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Check if a device has been linked via a linking code.
+    The app polls this endpoint after generating a linking code to see
+    if the user has entered the code on the website.
+    """
+    # Find the most recent linking code for this device that was linked
+    result = await db.execute(
+        select(DeviceLinkingCode).where(
+            DeviceLinkingCode.device_id == request.device_id,
+            DeviceLinkingCode.is_linked == True
+        ).order_by(DeviceLinkingCode.linked_at.desc())
+    )
+    linking_code = result.scalar_one_or_none()
+
+    if not linking_code or not linking_code.access_token:
+        return DeviceLinkStatusResponse(linked=False)
+
+    # Get user info
+    user = None
+    plan = None
+    if linking_code.linked_user_id:
+        user_result = await db.execute(
+            select(User).where(User.id == linking_code.linked_user_id)
+        )
+        user = user_result.scalar_one_or_none()
+
+        if user:
+            sub_result = await db.execute(
+                select(Subscription).where(
+                    Subscription.user_id == user.id
+                ).order_by(Subscription.created_at.desc())
+            )
+            subscription = sub_result.scalar_one_or_none()
+            if subscription:
+                plan = subscription.plan_name
+
+    return DeviceLinkStatusResponse(
+        linked=True,
+        access_token=linking_code.access_token,
+        refresh_token=linking_code.refresh_token,
+        user_email=user.email if user else None,
+        plan=plan,
     )
 
 

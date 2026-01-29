@@ -7,6 +7,23 @@ import { Footer } from "@/components/layout/footer";
 
 const releases = [
   {
+    version: "0.2.0",
+    date: "January 2026",
+    type: "minor",
+    title: "Activity & Alerts Update",
+    description: "New activity dashboard, alerts page, and device linking improvements.",
+    changes: [
+      { type: "feature", text: "Activity Dashboard - Real-time feed of blocked attempts" },
+      { type: "feature", text: "Alerts Page - View and manage device notifications" },
+      { type: "feature", text: "Quick Device Linking - Generate activation codes from website" },
+      { type: "feature", text: "Device Linking Codes - Link devices by entering a code" },
+      { type: "improvement", text: "Enhanced device management on web dashboard" },
+      { type: "security", text: "Content Security Policy added for improved security" },
+      { type: "feature", text: "Auto-update support for seamless upgrades" },
+      { type: "improvement", text: "Updated navigation with Activity and Alerts shortcuts" },
+    ],
+  },
+  {
     version: "0.1.0",
     date: "January 2026",
     type: "major",

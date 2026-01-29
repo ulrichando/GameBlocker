@@ -2,7 +2,7 @@
 # Script to copy Tauri build artifacts to website downloads folder
 # Run this after building on each platform
 
-VERSION="0.1.0"
+VERSION="0.2.0"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 DOWNLOADS_DIR="$PROJECT_ROOT/website/downloads"

@@ -152,7 +152,7 @@ export default function DownloadPage() {
         body: JSON.stringify({
           platform: platformId,
           source: "dashboard",
-          app_version: availableDownloads?.version || "0.1.0",
+          app_version: availableDownloads?.version || "0.2.0",
         }),
       });
 
@@ -316,7 +316,7 @@ export default function DownloadPage() {
                 {/* Detected Badge */}
                 {isDetected && (
                   <div className="absolute top-2 right-2">
-                    <span className="bg-primary-500/20 text-primary-400 text-[10px] font-medium px-1.5 py-0.5 rounded-full">
+                    <span className="bg-primary-500/20 text-primary-400 text-caption-2 font-medium px-1.5 py-0.5 rounded-full">
                       Detected
                     </span>
                   </div>
@@ -325,7 +325,7 @@ export default function DownloadPage() {
                 {/* Not Available Badge */}
                 {!hasAvailableFormats && (
                   <div className="absolute top-2 right-2">
-                    <span className="bg-amber-500/20 text-amber-400 text-[10px] font-medium px-1.5 py-0.5 rounded-full">
+                    <span className="bg-amber-500/20 text-amber-400 text-caption-2 font-medium px-1.5 py-0.5 rounded-full">
                       Coming Soon
                     </span>
                   </div>
@@ -343,8 +343,8 @@ export default function DownloadPage() {
 
                 {/* Platform Info */}
                 <h3 className="text-base font-bold text-white mb-0.5">{platformNames[platformId]}</h3>
-                <p className="text-primary-400 text-[10px] font-medium">v{availableDownloads?.version}</p>
-                <p className="text-gray-500 text-[10px] h-4 flex items-center justify-center">{platformRequirements[platformId]}</p>
+                <p className="text-primary-400 text-caption-2 font-medium">v{availableDownloads?.version}</p>
+                <p className="text-gray-500 text-caption-2 h-4 flex items-center justify-center">{platformRequirements[platformId]}</p>
 
                 {/* Spacer */}
                 <div className="grow" />
@@ -363,7 +363,7 @@ export default function DownloadPage() {
                         {selectedFormat?.label}
                         {!selectedFormat?.available && " (N/A)"}
                       </span>
-                      <span className="text-[10px] text-gray-500">
+                      <span className="text-caption-2 text-gray-500">
                         {selectedFormat?.available ? selectedFormat?.fileSize : "Not available"}
                       </span>
                     </span>
@@ -394,9 +394,9 @@ export default function DownloadPage() {
                                 {format.label}
                                 {!format.available && <span className="text-amber-400 ml-1">(N/A)</span>}
                               </p>
-                              <p className="text-[10px] text-gray-500">{format.description}</p>
+                              <p className="text-caption-2 text-gray-500">{format.description}</p>
                             </div>
-                            <span className="text-[10px] text-gray-400 ml-2 shrink-0">
+                            <span className="text-caption-2 text-gray-400 ml-2 shrink-0">
                               {format.available ? format.fileSize : "—"}
                             </span>
                           </div>
@@ -475,7 +475,7 @@ export default function DownloadPage() {
                 <div className="text-gray-400 text-xs space-y-1">
                   <div><strong className="text-white">Windows:</strong> Double-click the .exe and follow the wizard.</div>
                   <div><strong className="text-white">macOS:</strong> Open the .dmg, drag to Applications.</div>
-                  <div><strong className="text-white">Linux:</strong> AppImage: <code className="bg-surface-elevated px-1 rounded text-[10px]">chmod +x</code> then run.</div>
+                  <div><strong className="text-white">Linux:</strong> AppImage: <code className="bg-surface-elevated px-1 rounded text-caption-2">chmod +x</code> then run.</div>
                 </div>
               </div>
             </div>
