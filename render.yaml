@@ -9,6 +9,7 @@ services:
     name: parentshield-api
     plan: free
     runtime: python
+    rootDir: website
     buildCommand: chmod +x build.sh && ./build.sh
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
