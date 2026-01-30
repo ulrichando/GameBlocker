@@ -54,10 +54,16 @@ def do_run_migrations(connection: Connection) -> None:
 
 async def run_async_migrations() -> None:
     """Run migrations in 'online' mode with async engine."""
+    # Disable SSL for internal connections (Fly.io uses private networking)
+    connect_args = {}
+    if "sslmode=disable" in settings.database_url or ".flycast" in settings.database_url or ".internal" in settings.database_url:
+        connect_args["ssl"] = False
+
     connectable = async_engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
+        connect_args=connect_args,
     )
 
     async with connectable.connect() as connection:
