@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { verifyPassword, createAccessToken, createRefreshToken, hashToken } from '@/lib/auth';
 import { success, error, unauthorized, serverError } from '@/lib/api-response';
@@ -75,6 +75,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (err) {
     console.error('Login error:', err);
-    return serverError();
+    const message = err instanceof Error ? err.message : 'Unknown error';
+    return NextResponse.json({ error: 'Login failed', details: message }, { status: 500 });
   }
 }
