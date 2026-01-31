@@ -5,7 +5,14 @@ import { NextRequest } from 'next/server';
 import prisma from './db';
 import crypto from 'crypto';
 
-const JWT_SECRET = process.env.JWT_SECRET || process.env.SECRET_KEY || 'change-this-secret';
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET || process.env.SECRET_KEY;
+  if (!secret) {
+    throw new Error('JWT_SECRET or SECRET_KEY environment variable is required');
+  }
+  return secret;
+}
+const JWT_SECRET = getJwtSecret();
 const ACCESS_TOKEN_EXPIRE_MINUTES = parseInt(process.env.ACCESS_TOKEN_EXPIRE_MINUTES || '15');
 const REFRESH_TOKEN_EXPIRE_DAYS = parseInt(process.env.REFRESH_TOKEN_EXPIRE_DAYS || '7');
 
