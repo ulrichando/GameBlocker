@@ -89,23 +89,29 @@ export async function POST(request: NextRequest) {
       }
 
       case 'customer.subscription.updated': {
-        const subscription = event.data.object as Stripe.Subscription;
+        const subEvent = event.data.object as unknown as {
+          id: string;
+          status: string;
+          items: { data: Array<{ price: { id: string } }> };
+          current_period_start: number;
+          current_period_end: number;
+        };
         const dbSub = await prisma.subscription.findUnique({
-          where: { stripeSubscriptionId: subscription.id },
+          where: { stripeSubscriptionId: subEvent.id },
         });
 
         if (dbSub) {
-          const priceId = subscription.items.data[0]?.price.id;
+          const priceId = subEvent.items.data[0]?.price.id;
           const plan = getPlanFromPriceId(priceId);
 
           await prisma.subscription.update({
             where: { id: dbSub.id },
             data: {
-              status: subscription.status === 'active' ? 'active' :
-                      subscription.status === 'past_due' ? 'past_due' : 'canceled',
+              status: subEvent.status === 'active' ? 'active' :
+                      subEvent.status === 'past_due' ? 'past_due' : 'canceled',
               plan,
-              currentPeriodStart: new Date(subscription.current_period_start * 1000),
-              currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+              currentPeriodStart: new Date(subEvent.current_period_start * 1000),
+              currentPeriodEnd: new Date(subEvent.current_period_end * 1000),
             },
           });
         }
@@ -113,9 +119,9 @@ export async function POST(request: NextRequest) {
       }
 
       case 'customer.subscription.deleted': {
-        const subscription = event.data.object as Stripe.Subscription;
+        const deletedSub = event.data.object as unknown as { id: string };
         await prisma.subscription.updateMany({
-          where: { stripeSubscriptionId: subscription.id },
+          where: { stripeSubscriptionId: deletedSub.id },
           data: {
             status: 'canceled',
             canceledAt: new Date(),
@@ -125,8 +131,13 @@ export async function POST(request: NextRequest) {
       }
 
       case 'invoice.paid': {
-        const invoice = event.data.object as Stripe.Invoice;
-        const customerId = invoice.customer as string;
+        const paidInvoice = event.data.object as unknown as {
+          id: string;
+          customer: string;
+          amount_paid: number;
+          currency: string;
+        };
+        const customerId = paidInvoice.customer;
 
         const subscription = await prisma.subscription.findFirst({
           where: { stripeCustomerId: customerId },
@@ -136,10 +147,10 @@ export async function POST(request: NextRequest) {
           await prisma.transaction.create({
             data: {
               userId: subscription.userId,
-              amount: invoice.amount_paid,
-              currency: invoice.currency,
+              amount: paidInvoice.amount_paid,
+              currency: paidInvoice.currency,
               status: 'succeeded',
-              stripeInvoiceId: invoice.id,
+              stripeInvoiceId: paidInvoice.id,
               description: `Subscription payment - ${subscription.plan} plan`,
             },
           });
@@ -148,8 +159,10 @@ export async function POST(request: NextRequest) {
       }
 
       case 'invoice.payment_failed': {
-        const invoice = event.data.object as Stripe.Invoice;
-        const subscriptionId = invoice.subscription as string;
+        const failedInvoice = event.data.object as unknown as {
+          subscription?: string;
+        };
+        const subscriptionId = failedInvoice.subscription;
 
         if (subscriptionId) {
           await prisma.subscription.updateMany({
