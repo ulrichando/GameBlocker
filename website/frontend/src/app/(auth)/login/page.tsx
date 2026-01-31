@@ -172,50 +172,6 @@ export default function LoginPage() {
             </p>
           </div>
 
-          {/* Demo Accounts */}
-          <motion.div
-            className="mt-6 border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-          >
-            <p className="text-xs text-neutral-400 dark:text-neutral-500 text-center mb-3">Demo Accounts (click to fill)</p>
-            <div className="grid grid-cols-1 gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setEmail("admin@parentshield.com");
-                  setPassword("ChangeThisPassword123!");
-                }}
-                className="border border-neutral-200 dark:border-neutral-700 p-3 text-left hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
-              >
-                <p className="text-sm font-medium text-neutral-900 dark:text-white">Admin</p>
-                <p className="text-xs text-neutral-400 dark:text-neutral-500 truncate">admin@parentshield.com</p>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setEmail("test@example.com");
-                  setPassword("Test123");
-                }}
-                className="border border-neutral-200 dark:border-neutral-700 p-3 text-left hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
-              >
-                <p className="text-sm font-medium text-neutral-900 dark:text-white">Test User</p>
-                <p className="text-xs text-neutral-400 dark:text-neutral-500 truncate">test@example.com</p>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setEmail("demo@parentshield.com");
-                  setPassword("Demo123!");
-                }}
-                className="border border-neutral-200 dark:border-neutral-700 p-3 text-left hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
-              >
-                <p className="text-sm font-medium text-neutral-900 dark:text-white">Demo User (Pro)</p>
-                <p className="text-xs text-neutral-400 dark:text-neutral-500 truncate">demo@parentshield.com</p>
-              </button>
-            </div>
-          </motion.div>
         </motion.div>
       </div>
       <Footer />
