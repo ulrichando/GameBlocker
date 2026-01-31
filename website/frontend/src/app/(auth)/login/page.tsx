@@ -31,38 +31,20 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        const errorMsg = typeof data.detail === "string"
-          ? data.detail
-          : Array.isArray(data.detail)
-            ? data.detail[0]?.msg || "Login failed"
-            : "Login failed";
+        const errorMsg = data.error || data.message || "Login failed";
         throw new Error(errorMsg);
       }
 
-      localStorage.setItem("access_token", data.access_token);
-      localStorage.setItem("refresh_token", data.refresh_token);
+      const { accessToken, refreshToken, user } = data.data;
+      localStorage.setItem("access_token", accessToken);
+      localStorage.setItem("refresh_token", refreshToken);
+      localStorage.setItem("user_role", user.role);
+      localStorage.setItem("user_email", user.email);
+      localStorage.setItem("user_name", user.firstName || "User");
 
-      try {
-        const profileRes = await fetch("/api/account/profile", {
-          headers: {
-            Authorization: `Bearer ${data.access_token}`,
-          },
-        });
-
-        if (profileRes.ok) {
-          const profile = await profileRes.json();
-          localStorage.setItem("user_role", profile.role);
-          localStorage.setItem("user_email", profile.email);
-          localStorage.setItem("user_name", profile.first_name || "User");
-          if (profile.role === "admin") {
-            router.push("/admin");
-          } else {
-            router.push("/dashboard");
-          }
-        } else {
-          router.push("/dashboard");
-        }
-      } catch {
+      if (user.role === "admin") {
+        router.push("/admin");
+      } else {
         router.push("/dashboard");
       }
     } catch (err) {
@@ -197,40 +179,18 @@ export default function LoginPage() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
           >
-            <p className="text-xs text-neutral-400 dark:text-neutral-500 text-center mb-3">Demo Accounts (click to fill)</p>
+            <p className="text-xs text-neutral-400 dark:text-neutral-500 text-center mb-3">Demo Account (click to fill)</p>
             <div className="grid grid-cols-1 gap-2">
               <button
                 type="button"
                 onClick={() => {
-                  setEmail("admin@parentshield.app");
-                  setPassword("Admin123!");
+                  setEmail("admin@parentshield.com");
+                  setPassword("ChangeThisPassword123!");
                 }}
                 className="border border-neutral-200 dark:border-neutral-700 p-3 text-left hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
               >
                 <p className="text-sm font-medium text-neutral-900 dark:text-white">Admin</p>
-                <p className="text-xs text-neutral-400 dark:text-neutral-500 truncate">admin@parentshield.app</p>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setEmail("customer@test.com");
-                  setPassword("Customer123!");
-                }}
-                className="border border-neutral-200 dark:border-neutral-700 p-3 text-left hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
-              >
-                <p className="text-sm font-medium text-neutral-900 dark:text-white">Customer 1</p>
-                <p className="text-xs text-neutral-400 dark:text-neutral-500 truncate">customer@test.com</p>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setEmail("demo@parentshield.app");
-                  setPassword("Demo123!");
-                }}
-                className="border border-neutral-200 dark:border-neutral-700 p-3 text-left hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
-              >
-                <p className="text-sm font-medium text-neutral-900 dark:text-white">Customer 2</p>
-                <p className="text-xs text-neutral-400 dark:text-neutral-500 truncate">demo@parentshield.app</p>
+                <p className="text-xs text-neutral-400 dark:text-neutral-500 truncate">admin@parentshield.com</p>
               </button>
             </div>
           </motion.div>

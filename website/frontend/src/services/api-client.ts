@@ -3,7 +3,7 @@
  * Following Next.js best practices for API service layer.
  */
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_URL = "/api";
 
 export interface ApiError {
   message: string;
@@ -35,16 +35,18 @@ async function refreshAccessToken(): Promise<string | null> {
     const response = await fetch(`${API_URL}/auth/refresh`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ refresh_token: refreshToken }),
+      body: JSON.stringify({ refreshToken }),
     });
 
     if (response.ok) {
       const data = await response.json();
-      localStorage.setItem("access_token", data.access_token);
-      if (data.refresh_token) {
-        localStorage.setItem("refresh_token", data.refresh_token);
+      if (data.data?.accessToken) {
+        localStorage.setItem("access_token", data.data.accessToken);
+        if (data.data.refreshToken) {
+          localStorage.setItem("refresh_token", data.data.refreshToken);
+        }
+        return data.data.accessToken;
       }
-      return data.access_token;
     }
   } catch {
     // Refresh failed

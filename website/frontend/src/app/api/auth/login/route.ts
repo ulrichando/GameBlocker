@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import prisma from '@/lib/db';
 import { verifyPassword, createAccessToken, createRefreshToken, hashToken } from '@/lib/auth';
 import { success, error, unauthorized, serverError } from '@/lib/api-response';
+import { isValidEmail, sanitizeEmail } from '@/lib/validation';
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,8 +13,14 @@ export async function POST(request: NextRequest) {
       return error('Email and password are required');
     }
 
+    if (!isValidEmail(email)) {
+      return error('Invalid email format');
+    }
+
+    const sanitizedEmail = sanitizeEmail(email);
+
     const user = await prisma.user.findUnique({
-      where: { email: email.toLowerCase() },
+      where: { email: sanitizedEmail },
       include: {
         subscriptions: {
           orderBy: { createdAt: 'desc' },

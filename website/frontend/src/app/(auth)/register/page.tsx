@@ -44,25 +44,26 @@ export default function RegisterPage() {
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
-          confirm_password: formData.confirmPassword,
-          first_name: formData.firstName || null,
-          last_name: formData.lastName || null,
+          firstName: formData.firstName || undefined,
+          lastName: formData.lastName || undefined,
         }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        const errorMsg = typeof data.detail === "string"
-          ? data.detail
-          : Array.isArray(data.detail)
-            ? data.detail[0]?.msg || "Registration failed"
-            : "Registration failed";
-        throw new Error(errorMsg);
+        throw new Error(data.error || data.message || "Registration failed");
       }
 
+      const { accessToken, refreshToken, user } = data.data;
+      localStorage.setItem("access_token", accessToken);
+      localStorage.setItem("refresh_token", refreshToken);
+      localStorage.setItem("user_role", user.role);
+      localStorage.setItem("user_email", user.email);
+      localStorage.setItem("user_name", user.firstName || "User");
+
       setSuccess(true);
-      setTimeout(() => router.push("/login"), 2000);
+      setTimeout(() => router.push("/dashboard"), 2000);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed");
     } finally {
@@ -205,7 +206,7 @@ export default function RegisterPage() {
                   </button>
                 </div>
                 <p className="text-xs text-neutral-400 dark:text-neutral-500 mt-2">
-                  Min 8 characters with uppercase, lowercase, and number
+                  Minimum 6 characters
                 </p>
               </div>
 

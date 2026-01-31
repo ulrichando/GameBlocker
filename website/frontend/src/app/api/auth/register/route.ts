@@ -1,7 +1,8 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
-import { hashPassword, createAccessToken, createRefreshToken, hashToken, generateToken } from '@/lib/auth';
-import { success, error, serverError } from '@/lib/api-response';
+import { hashPassword, createAccessToken, createRefreshToken, hashToken } from '@/lib/auth';
+import { success, error } from '@/lib/api-response';
+import { isValidEmail, isValidPassword, sanitizeEmail, sanitizeString } from '@/lib/validation';
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,8 +13,20 @@ export async function POST(request: NextRequest) {
       return error('Email and password are required');
     }
 
+    if (!isValidEmail(email)) {
+      return error('Invalid email format');
+    }
+
+    if (!isValidPassword(password)) {
+      return error('Password must be at least 6 characters');
+    }
+
+    const sanitizedEmail = sanitizeEmail(email);
+    const sanitizedFirstName = sanitizeString(firstName);
+    const sanitizedLastName = sanitizeString(lastName);
+
     const existingUser = await prisma.user.findUnique({
-      where: { email: email.toLowerCase() },
+      where: { email: sanitizedEmail },
     });
 
     if (existingUser) {
@@ -24,10 +37,10 @@ export async function POST(request: NextRequest) {
 
     const user = await prisma.user.create({
       data: {
-        email: email.toLowerCase(),
+        email: sanitizedEmail,
         passwordHash,
-        firstName,
-        lastName,
+        firstName: sanitizedFirstName,
+        lastName: sanitizedLastName,
         isVerified: true,
         subscriptions: {
           create: {
@@ -68,6 +81,7 @@ export async function POST(request: NextRequest) {
     }, 201);
   } catch (err) {
     console.error('Registration error:', err);
-    return serverError();
+    const message = err instanceof Error ? err.message : 'Unknown error';
+    return NextResponse.json({ error: 'Registration failed', details: message }, { status: 500 });
   }
 }
